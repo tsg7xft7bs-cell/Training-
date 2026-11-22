@@ -590,7 +590,7 @@ function vGer(){
 function vSpeicher(){
   return`${nav('Plan')}<h1>Speicherung</h1>${banner()}
   <h2>Konto</h2>${authBox()}
-  <div class="mut sm" style="margin:8px 16px">${auth?'Jede Änderung wird automatisch in deinem Konto gesichert und ist auf jedem Gerät gleich, auch nach einem Handywechsel.':'Ohne Konto liegen deine Daten nur auf diesem Handy.'}</div>
+  <div class="mut sm" style="margin:8px 16px">App-Version ${typeof APP_VERSION!=='undefined'?APP_VERSION:''} · ${auth?'Jede Änderung wird automatisch in deinem Konto gesichert und ist auf jedem Gerät gleich, auch nach einem Handywechsel.':'Ohne Konto liegen deine Daten nur auf diesem Handy.'}</div>
   <h2>Zusätzliche Sicherung als Datei</h2><div class="group ex">${seg('abk',['w','t','o'],S.autoBk,v=>({w:'Wöchentlich',t:'Jedes Training',o:'Aus'})[v])}
     <div class="mut sm" style="margin-top:10px">Nach dem Training öffnet sich automatisch das Teilen-Menü. Einmal auf <b>In „Dateien“ sichern</b> → iCloud Drive tippen, fertig.</div></div>
   <h2>Sicherung</h2><div class="group ex"><button class="btn" data-a="dl" style="margin-top:0">Jetzt sichern</button>
@@ -735,7 +735,10 @@ document.addEventListener('input',ev=>{
 document.addEventListener('change',ev=>{const t=ev.target;if(t.dataset.f==='hx'){hx=t.value;render()}
   if(t.dataset.f==='file'&&t.files&&t.files[0]){const r=new FileReader();r.onload=()=>{try{const x=JSON.parse(r.result);if(!x.v||!Array.isArray(x.sessions))throw 0;S=Object.assign(blank(),x);migrate();S.sessions.forEach(z=>pendingSes.add(z.id));save();msg='Sicherung wiederhergestellt: '+S.sessions.length+' Einheiten.';route=valid(route)}catch(e){msg='Die Datei ist keine gültige Sicherung.'}render()};r.readAsText(t.files[0])}});
 try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
-if('serviceWorker' in navigator&&location.protocol==='https:'){window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{})})}
+const APP_VERSION=6;
+if('serviceWorker' in navigator&&location.protocol==='https:'){let rl=false;const had=!!navigator.serviceWorker.controller;
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{if(had&&!rl&&!S.active){rl=true;location.reload()}});
+  window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(r=>{r.update().catch(()=>{});document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')r.update().catch(()=>{})})}).catch(()=>{})})}
 route=valid((()=>{try{return location.hash.slice(1)}catch(e){return''}})()||(S.active?'workout':'train'));
 render();initDb();
 </script>
