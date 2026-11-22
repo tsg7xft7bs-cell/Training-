@@ -48,6 +48,7 @@ button:active{transform:scale(.97);opacity:.75}
 .tag{background:var(--fill);border-radius:99px;padding:5px 11px;font-size:13px}
 .tag.btnt{color:var(--blue);font-size:14px;padding:8px 13px}
 .tag.off{opacity:.4;text-decoration:line-through}
+.tag.sel{background:var(--blue);color:#fff}
 .hero{background:var(--card);border-radius:26px;padding:22px;margin-top:20px}
 .hero .k{color:var(--mut);font-size:13px;text-transform:uppercase;letter-spacing:.3px}
 .hero .t{font-size:28px;font-weight:700;letter-spacing:-.4px;margin:4px 0 6px}
@@ -118,28 +119,35 @@ textarea{font:13px ui-monospace,monospace;height:80px;text-align:left}
 <div class="tabs"><div id="tabs"></div></div>
 <datalist id="lib"></datalist>
 <script>
-const G={brust:'Brust',lat:'Rücken – Breite',ruder:'Rücken – Dicke',ur:'Unterer Rücken',sch:'Schultern – vorne',seit:'Schultern – seitlich',hint:'Schultern – hinten',nack:'Nacken',biz:'Bizeps',tri:'Trizeps',quad:'Beine – vorne',ham:'Beine – hinten',glu:'Po',add:'Adduktoren',wad:'Waden',bauch:'Bauch'};
-const REL={brust:['tri'],lat:['ruder'],ruder:['lat'],ur:['ham','glu'],sch:['seit'],seit:['sch'],hint:['ruder'],nack:['ruder'],biz:[],tri:['brust'],quad:['glu'],ham:['glu'],glu:['ham','quad'],add:['glu'],wad:[],bauch:[]};
-const MACH={
-brust:['Brustpresse','Schrägbank-Brustpresse','Butterfly','Kabel-Crossover','Smith-Bankdrücken','Smith-Schrägbankdrücken','Dip-Maschine (assistiert)'],
-lat:['Latzug','Latzug eng (V-Griff)','Latzug-Maschine (Hammer)','Klimmzug-Maschine (assistiert)','Pullover-Maschine','Einarmiger Latzug am Kabel'],
-ruder:['Rudermaschine (brustgestützt)','Kabelrudern','T-Bar-Rudern (Maschine)','High-Row-Maschine'],
-ur:['Rückenstrecker-Gerät','Hyperextension'],
-sch:['Schulterpresse','Smith-Schulterdrücken'],
-seit:['Seitheben-Maschine','Kabel-Seitheben'],
-hint:['Reverse Butterfly','Face Pulls am Kabel'],
-nack:['Shrug-Maschine','Smith-Shrugs'],
-biz:['Bizepsmaschine','Kabel-Curls','Kabel-Hammer-Curls (Seil)','Scott-Curl-Maschine'],
-tri:['Trizepsdrücken am Kabel','Trizeps-Dip-Maschine','Trizeps-Extension-Maschine','Überkopf-Trizeps am Kabel'],
-quad:['Hackenschmidt','Beinpresse','Smith-Kniebeugen','Pendulum Squat','Beinstrecker'],
-ham:['Liegender Beinbeuger','Sitzender Beinbeuger'],
-glu:['Hip-Thrust-Maschine','Glute-Kickback-Maschine','Abduktoren-Maschine'],
-add:['Adduktoren-Maschine'],
-wad:['Wadenmaschine stehend','Wadenmaschine sitzend','Wadenheben an der Beinpresse'],
-bauch:['Bauchpresse (Crunch-Maschine)','Kabel-Crunch','Rotationsgerät','Beinheben am Kapitänsstuhl']};
-const MG={};Object.entries(MACH).forEach(([g,l])=>l.forEach(n=>MG[n]=g));
-const LIB=Object.values(MACH).flat();
-document.getElementById('lib').innerHTML=LIB.map(x=>`<option value="${x}">`).join('');
+const G={brust:'Brust',lat:'Rücken – Breite',ruder:'Rücken – Dicke',ur:'Unterer Rücken',sch:'Schultern – vorne',seit:'Schultern – seitlich',hint:'Schultern – hinten',nack:'Nacken',biz:'Bizeps',tri:'Trizeps',ua:'Unterarme',quad:'Beine – vorne',ham:'Beine – hinten',glu:'Po',add:'Adduktoren',wad:'Waden',bauch:'Bauch',cardio:'Cardio'};
+const REL={brust:['tri'],lat:['ruder'],ruder:['lat'],ur:['ham','glu'],sch:['seit'],seit:['sch'],hint:['ruder'],nack:['ruder'],biz:['ua'],tri:['brust'],ua:['biz'],quad:['glu'],ham:['glu'],glu:['ham','quad'],add:['glu'],wad:[],bauch:[],cardio:[]};
+const TY={M:'Maschine',K:'Kabel',SM:'Smith',LH:'Langhantel',KH:'Kurzhantel',SZ:'SZ-Stange',KB:'Kettlebell',KG:'Körpergewicht',B:'Band',S:'Station',C:'Cardio'};
+const BASE={
+brust:'Brustpresse|M;Schrägbank-Brustpresse|M;Negativ-Brustpresse|M;Brustpresse (Hammer Strength)|M;Brustpresse einarmig|M;Butterfly|M;Dip-Maschine (assistiert)|M;Kabel-Crossover|K;Kabel-Crossover von unten|K;Kabel-Crossover von oben|K;Kabel-Fliegende einarmig|K;Kabel-Brustpresse stehend|K;Smith-Bankdrücken|SM;Smith-Schrägbankdrücken|SM;Smith-Negativbankdrücken|SM;Bankdrücken (Langhantel)|LH;Schrägbankdrücken (Langhantel)|LH;Negativbankdrücken (Langhantel)|LH;Floor Press|LH;Kurzhantel-Bankdrücken|KH;Kurzhantel-Schrägbankdrücken|KH;Kurzhantel-Negativbankdrücken|KH;Kurzhantel-Fliegende|KH;Schräge Kurzhantel-Fliegende|KH;Kurzhantel-Pullover|KH;Squeeze Press|KH;Liegestütze|KG;Schräge Liegestütze (Hände erhöht)|KG;Liegestütze Füße erhöht|KG;Dips (Brust)|KG',
+lat:'Latzug|K;Latzug eng (V-Griff)|K;Latzug Untergriff|K;Latzug breit|K;Einarmiger Latzug am Kabel|K;Straight-Arm Pulldown|K;Kabel-Pullover mit Seil|K;Latzug-Maschine (Hammer)|M;Latzug-Maschine einarmig|M;Klimmzug-Maschine (assistiert)|M;Pullover-Maschine|M;Klimmzüge|KG;Klimmzüge Untergriff (Chin-ups)|KG;Klimmzüge neutraler Griff|KG;Klimmzüge mit Gewicht|KG;Klimmzüge mit Band|B',
+ruder:'Kettlebell-Rudern|KB;Rudermaschine (brustgestützt)|M;Rudermaschine einarmig|M;Low-Row-Maschine|M;High-Row-Maschine|M;T-Bar-Rudern (Maschine)|M;Kabelrudern|K;Kabelrudern breit|K;Kabelrudern einarmig|K;Smith-Rudern|SM;Langhantelrudern vorgebeugt|LH;Langhantelrudern Untergriff|LH;Pendlay Rudern|LH;T-Bar-Rudern (Langhantel)|LH;Meadows Rudern|LH;Seal Row|LH;Kurzhantelrudern einarmig|KH;Brustgestütztes Kurzhantelrudern|KH;Kroc Rows|KH;Inverted Rows|KG',
+ur:'Rückenstrecker-Gerät|M;Reverse Hyperextension|M;Hyperextension|S;Hyperextension mit Gewicht|S;Kreuzheben|LH;Sumo-Kreuzheben|LH;Trap-Bar-Kreuzheben|LH;Rack Pulls|LH;Good Mornings|LH;Superman|KG',
+sch:'Kettlebell-Schulterdrücken|KB;Schulterpresse|M;Schulterpresse (Hammer Strength)|M;Smith-Schulterdrücken|SM;Kabel-Schulterdrücken|K;Frontheben am Kabel|K;Schulterdrücken (Kurzhantel)|KH;Arnold Press|KH;Frontheben (Kurzhantel)|KH;Military Press (Langhantel)|LH;Schulterdrücken sitzend (Langhantel)|LH;Push Press|LH;Landmine Press|LH;Frontheben mit Scheibe|S;Pike Push-ups|KG',
+seit:'Seitheben-Maschine|M;Kabel-Seitheben|K;Lean-Away Seitheben (Kabel)|K;Aufrechtes Rudern am Kabel|K;Y-Raises (Kabel)|K;Seitheben (Kurzhantel)|KH;Seitheben sitzend (Kurzhantel)|KH;Aufrechtes Rudern (Langhantel)|LH;Seitheben mit Band|B',
+hint:'Reverse Butterfly|M;Face Pulls am Kabel|K;Kabel-Reverse-Fly|K;Rudern hoch zum Gesicht (Kabel)|K;Reverse Flys (Kurzhantel)|KH;Vorgebeugtes Seitheben|KH;Band Pull-Aparts|B',
+nack:'Shrug-Maschine|M;Smith-Shrugs|SM;Kabel-Shrugs|K;Shrugs (Kurzhantel)|KH;Shrugs (Langhantel)|LH;Trap-Bar-Shrugs|LH',
+biz:'Bizepsmaschine|M;Scott-Curl-Maschine|M;Kabel-Curls|K;Kabel-Curls einarmig|K;Kabel-Hammer-Curls (Seil)|K;Bayesian Curls (Kabel)|K;Langhantel-Curls|LH;Drag Curls|LH;SZ-Curls|SZ;Scott-Curls (SZ)|SZ;Kurzhantel-Curls|KH;Hammer Curls (Kurzhantel)|KH;Cross-Body Hammer Curls|KH;Schrägbank-Curls|KH;Konzentrations-Curls|KH;Spider Curls|KH;Zottman Curls|KH',
+tri:'Trizepsdrücken am Kabel|K;Trizepsdrücken mit Seil|K;Trizepsdrücken Untergriff|K;Trizepsdrücken einarmig (Kabel)|K;Überkopf-Trizeps am Kabel|K;Kickbacks (Kabel)|K;Trizeps-Dip-Maschine|M;Trizeps-Extension-Maschine|M;Skullcrushers (SZ)|SZ;Enges Bankdrücken|LH;JM Press|LH;Smith-Enges Bankdrücken|SM;French Press (Kurzhantel)|KH;Überkopf-Trizepsstrecken (Kurzhantel)|KH;Kickbacks (Kurzhantel)|KH;Dips (Trizeps)|KG;Bankdips|KG;Diamond-Liegestütze|KG',
+ua:'Unterarm-Maschine|M;Handgelenk-Curls|LH;Reverse Handgelenk-Curls|LH;Reverse Curls (SZ)|SZ;Farmer\'s Walk|KH;Dead Hang|KG',
+quad:'Kettlebell Goblet Squat|KB;Smith-Bulgarian Split Squats|SM;Hackenschmidt|M;Beinpresse|M;Beinpresse 45°|M;Horizontale Beinpresse|M;Beinpresse einbeinig|M;Pendulum Squat|M;Belt Squat|M;V-Squat-Maschine|M;Beinstrecker|M;Beinstrecker einbeinig|M;Smith-Kniebeugen|SM;Smith-Ausfallschritte|SM;Kniebeugen (Langhantel)|LH;Frontkniebeugen|LH;Box Squats|LH;Goblet Squat|KH;Bulgarian Split Squats|KH;Ausfallschritte (Kurzhantel)|KH;Gehende Ausfallschritte|KH;Step-ups|KH;Sissy Squat|KG;Kniebeugen (Körpergewicht)|KG;Wall Sit|KG',
+ham:'Liegender Beinbeuger|M;Sitzender Beinbeuger|M;Stehender Beinbeuger einbeinig|M;Beinbeuger am Kabel|K;Smith-Rumänisches Kreuzheben|SM;Rumänisches Kreuzheben (Langhantel)|LH;Gestrecktes Kreuzheben|LH;Rumänisches Kreuzheben (Kurzhantel)|KH;Einbeiniges Rumänisches Kreuzheben|KH;Kettlebell Swings|KB;Glute-Ham-Raise|S;Nordic Curls|KG',
+glu:'Hip-Thrust-Maschine|M;Glute-Kickback-Maschine|M;Abduktoren-Maschine|M;Kabel-Kickbacks|K;Kabel-Abduktion|K;Cable Pull-Through|K;Smith-Hip-Thrusts|SM;Hip Thrusts (Langhantel)|LH;Sumo-Kniebeugen (Kurzhantel)|KH;Glute Bridge|KG;Hip Thrust einbeinig|KG;Abduktion mit Band|B',
+add:'Adduktoren-Maschine|M;Kabel-Adduktion|K;Copenhagen Plank|KG',
+wad:'Wadenmaschine stehend|M;Wadenmaschine sitzend|M;Wadenheben an der Beinpresse|M;Donkey Calf Raises|M;Smith-Wadenheben|SM;Wadenheben einbeinig (Kurzhantel)|KH;Wadenheben (Körpergewicht)|KG;Tibialis Raises|KG',
+bauch:'Turkish Get-up|KB;Bauchpresse (Crunch-Maschine)|M;Rotationsgerät|M;Kabel-Crunch|K;Kabel-Holzhacker|K;Pallof Press|K;Beinheben am Kapitänsstuhl|S;Ab-Roller|S;Decline Sit-ups|S;Russian Twists|S;Crunches|KG;Sit-ups|KG;Fahrrad-Crunches|KG;Plank|KG;Seitstütz|KG;Hängendes Beinheben|KG;Beinheben liegend|KG;Toes to Bar|KG;Dead Bug|KG;Mountain Climbers|KG',
+cardio:'Laufband|C;Crosstrainer|C;Rudergerät (Cardio)|C;Fahrrad-Ergometer|C;Stairmaster|C;Assault Bike|C;Seilspringen|C;Schlittenschieben|C;Battle Ropes|C'};
+const ALIAS={'Butterfly':'pec deck fly','Reverse Butterfly':'rear delt fly','Beinpresse':'leg press','Beinstrecker':'leg extension','Liegender Beinbeuger':'leg curl','Sitzender Beinbeuger':'leg curl','Latzug':'lat pulldown','Kabelrudern':'seated cable row','Hackenschmidt':'hack squat','Kniebeugen (Langhantel)':'squat','Kreuzheben':'deadlift','Bankdrücken (Langhantel)':'bench press','Brustpresse':'chest press','Schulterpresse':'shoulder press','Seitheben-Maschine':'lateral raise','Kabel-Seitheben':'lateral raise','Seitheben (Kurzhantel)':'lateral raise','Trizepsdrücken am Kabel':'pushdown','Trizepsdrücken mit Seil':'rope pushdown','Bizepsmaschine':'curl','Wadenmaschine stehend':'calf raise','Wadenmaschine sitzend':'calf raise','Hip-Thrust-Maschine':'glute','Klimmzüge':'pull up','Klimmzüge Untergriff (Chin-ups)':'chin up','Rumänisches Kreuzheben (Langhantel)':'rdl romanian deadlift','Rudermaschine (brustgestützt)':'chest supported row','Abduktoren-Maschine':'abductor','Adduktoren-Maschine':'adductor','Bauchpresse (Crunch-Maschine)':'ab crunch','Skullcrushers (SZ)':'lying triceps extension','Ausfallschritte (Kurzhantel)':'lunges','Liegestütze':'push up'};
+const MACH={},MG={},MT={};let LIB=[];
+function rebuildLib(){for(const g in G){MACH[g]=[]}for(const k in MG)delete MG[k];
+  for(const[g,str]of Object.entries(BASE))for(const it of str.split(';')){const[n,t]=it.split('|');MACH[g].push(n);MG[n]=g;MT[n]=t}
+  let cs=[];try{cs=S.custom||[]}catch(e){}for(const c of cs){if(!MG[c.n]&&MACH[c.g]){MACH[c.g].push(c.n);MG[c.n]=c.g;MT[c.n]=c.t||'S'}}
+  LIB=Object.values(MACH).flat();const dl=document.getElementById('lib');if(dl)dl.innerHTML=LIB.map(x=>`<option value="${x.replace(/"/g,'&quot;')}">`).join('')}
+rebuildLib();
 const E=(n,s,a,b)=>({n,s,r:[a,b||a]});
 const D=(name,ex)=>({name,ex});
 const BP='Brustpresse',SBP='Schrägbank-Brustpresse',BF='Butterfly',DIP='Dip-Maschine (assistiert)',LZ='Latzug',LZE='Latzug eng (V-Griff)',LZH='Latzug-Maschine (Hammer)',RM='Rudermaschine (brustgestützt)',KR='Kabelrudern',TB='T-Bar-Rudern (Maschine)',RS='Rückenstrecker-Gerät',SP='Schulterpresse',SH='Seitheben-Maschine',KSH='Kabel-Seitheben',RB='Reverse Butterfly',FP='Face Pulls am Kabel',SHR='Shrug-Maschine',BIZ='Bizepsmaschine',HAM='Kabel-Hammer-Curls (Seil)',SC='Scott-Curl-Maschine',TD='Trizepsdrücken am Kabel',TDM='Trizeps-Dip-Maschine',UT='Überkopf-Trizeps am Kabel',HS='Hackenschmidt',LP='Beinpresse',SK='Smith-Kniebeugen',BS='Beinstrecker',LBB='Liegender Beinbeuger',SBB='Sitzender Beinbeuger',HT='Hip-Thrust-Maschine',WS='Wadenmaschine stehend',WSI='Wadenmaschine sitzend',BAU='Bauchpresse (Crunch-Maschine)';
@@ -184,11 +192,12 @@ const PLANS=[
 {id:'arn6',days:6,name:'Arnold Split',desc:'Brust & Rücken, Schultern & Arme, Beine, zweimal pro Woche. Brust- und Rückenübung im Wechsel als Supersatz.',d:[A_BR,A_SA,A_BE,A_BR,A_SA,A_BE]}
 ];
 const PV=3;
-const has=n=>!(S.no||[]).includes(n);
-function alts(n){const g=MG[n];if(!g)return[];return[g,...REL[g]].flatMap(x=>MACH[x]).filter(x=>x!==n&&has(x))}
+const has=n=>!(S.no||[]).includes(n)&&!(S.noT||[]).includes(MT[n]);
+const PRI={M:0,K:1,SM:2,KH:3,LH:3,SZ:3,KB:4,KG:4,B:5,S:4,C:6};
+function alts(n){const g=MG[n];if(!g)return[];const l=[g,...REL[g]].flatMap(x=>MACH[x].map(y=>[y,x===g?0:1])).filter(([x])=>x!==n&&has(x));l.sort((p,q)=>p[1]-q[1]||(PRI[MT[p[0]]]??9)-(PRI[MT[q[0]]]??9));return l.map(x=>x[0])}
 function fitDay(day){const used=[],out=[];for(const e of day.ex){let n=e.n;if(!has(n)){const a=alts(n).filter(x=>!used.includes(x));n=a[0]||n}used.push(n);out.push({...e,n})}return{...day,ex:out}}
 function fitPlan(p){let c=0;const d=p.d.map(day=>{const f=fitDay(day);f.ex.forEach((e,i)=>{if(e.n!==day.ex[i].n)c++});return f});return{plan:{...p,d},c}}
-function migrate(){if(!S.no)S.no=[];if(!S.wd||!S.wd.length)S.wd=[0,1,2,3,4,5];if(!S.ov)S.ov={};if(!S.mv)S.mv=[];if(S.warm===undefined)S.warm=true;
+function migrate(){if(!S.no)S.no=[];if(!S.noT)S.noT=[];if(!S.custom)S.custom=[];rebuildLib();if(!S.wd||!S.wd.length)S.wd=[0,1,2,3,4,5];if(!S.ov)S.ov={};if(!S.mv)S.mv=[];if(S.warm===undefined)S.warm=true;
   if(S.plan&&(S.pv||1)<2){const p=PLANS.find(x=>x.id===S.planId);if(p)S.plan=fitPlan({name:p.name,d:clone(p.d)}).plan}
   else if(S.plan&&(S.pv||1)<3){S.plan.d.forEach(day=>{if(day.name==='Brust & Rücken'&&!day.ex.some(e=>e.ss))day.ex.forEach((e,k)=>{if(k<6&&k+1-(k%2)<day.ex.length)e.ss='s'+(k>>1)})})}
   S.pv=PV}
@@ -266,11 +275,12 @@ function applyRemote(snap){
 const isTyping=()=>{const a=document.activeElement;return a&&(a.tagName==='INPUT'||a.tagName==='TEXTAREA')};
 
 /* ---------- Navigation ---------- */
-const ROUTES=/^(start|train|workout|erfolge|homescreen|hist|plan|day-\d+|optionen|geraete|speicher|neuerplan|uebung)$/;
+const ROUTES=/^(start|train|workout|erfolge|homescreen|hist|plan|day-\d+|optionen|geraete|speicher|neuerplan|uebung|eigene)$/;
 function parent(r){
   if(r==='homescreen')return homeFrom;if(['workout','erfolge'].includes(r))return'train';
   if(/^day-\d+$/.test(r)||['optionen','geraete','speicher','neuerplan'].includes(r))return'plan';
   if(r==='uebung')return pickFor&&pickFor.t==='p'?'day-'+pickFor.i:'workout';
+  if(r==='eigene')return pickFor?'uebung':'plan';
   return'train';
 }
 function valid(r){
@@ -326,6 +336,7 @@ function histE(n){const o=[];for(const s of S.sessions){const e=s.ex.find(x=>x.n
 function stalled(n){const h=histE(n);if(h.length<4||h.slice(0,3).some(x=>x.dl))return false;return Math.max(...h.slice(0,3).map(x=>x.b))<=Math.max(...h.slice(3).map(x=>x.b))}
 function partner(k){const e=S.active.ex[k];if(!e||!e.ss)return-1;return S.active.ex.findIndex((x,q)=>q!==k&&x.ss===e.ss)}
 function buildSets(ex){
+  if(MG[ex.n]==='cardio'){const l=lastFor(ex.n),p=l&&l.sets[0];return{n:ex.n,s:ex.s,r:ex.r,ss:ex.ss,cardio:true,sets:Array.from({length:ex.s},()=>({kg:p?fmt(p.kg):'',reps:p?String(p.reps):String(ex.r[0]),pv:p?fmt(p.kg)+' · '+p.reps+' min':'–',done:false})),tip:'Stufe und Minuten eintragen.',dl:false,warm:[]}}
   const l=lastFor(ex.n),sets=[];
   const hit=l&&l.sets.length>=ex.s&&l.sets.slice(0,ex.s).every(x=>x.reps>=ex.r[1]);
   const dl=!!l&&!hit&&stalled(ex.n);
@@ -346,7 +357,7 @@ function finish(){
   const ex=a.ex.map(e=>({n:e.n,dl:e.dl||undefined,sets:e.sets.filter(s=>s.done&&num(s.reps)>0).map(s=>({kg:num(s.kg),reps:num(s.reps)}))})).filter(e=>e.sets.length);
   if(!ex.length){msg='Hake mindestens einen Satz ab, bevor du beendest.';render();return}
   const b0=badgeCount();
-  const pr=ex.filter(e=>{const b=bestFor(e.n);return b>0&&Math.max(...e.sets.map(e1))>b}).map(e=>e.n);
+  const pr=ex.filter(e=>{if(MG[e.n]==='cardio')return false;const b=bestFor(e.n);return b>0&&Math.max(...e.sets.map(e1))>b}).map(e=>e.n);
   const s={id:Date.now(),date:new Date().toISOString(),day:a.name,min:Math.max(1,Math.round((Date.now()-a.t)/60000)),ex,pr};
   S.sessions.unshift(s);pendingSes.add(s.id);
   S.next=(a.i+1)%S.plan.d.length;S.active=null;stopRest();lockScreen(false);
@@ -368,7 +379,7 @@ function swList(key,cur,act,i,j){if(sw!==key)return'';const l=alts(cur);
   return`<div class="tags">${l.length?l.map(x=>`<button class="tag btnt" data-a="${act}" data-i="${i}" ${j!==undefined?`data-j="${j}"`:''} data-n="${esc(x)}">${esc(x)}</button>`).join(''):'<span class="mut sm">Keine Alternative vorhanden.</span>'}</div>${act==='wsw'?'<div class="mut sm" style="margin-top:6px">Gilt nur für heute. Dauerhaft tauschen unter Plan.</div>':''}`}
 function busyList(i,cur){if(sw!=='b'+i)return'';const inW=S.active.ex.map(e=>e.n),l=alts(cur).filter(x=>!inW.includes(x));
   return`<div class="mut sm" style="margin-top:8px">Gerät besetzt? Später machen oder heute ein freies nehmen:</div><div class="tags"><button class="tag btnt" data-a="later" data-i="${i}" style="background:var(--blue);color:#fff">Später machen</button>${l.map(x=>`<button class="tag btnt" data-a="wsw" data-i="${i}" data-n="${esc(x)}">${esc(x)}</button>`).join('')}</div>`}
-const banner=()=>msg?`<div class="banner ${/Hake|keine|nicht|Kein/.test(msg)?'warn':''}">${esc(msg)}</div>`:'';
+const banner=()=>msg?`<div class="banner ${/Hake|keine|nicht|Kein|Bitte|gibt es schon/.test(msg)?'warn':''}">${esc(msg)}</div>`:'';
 
 /* ---------- Ansichten ---------- */
 function vStart(isNew){
@@ -425,7 +436,7 @@ function vWorkout(){
     <div class="acts"><button class="lnk" data-a="sw" data-i="b${i}">Belegt</button><button class="lnk" data-a="sw" data-i="w${i}">Tauschen</button><button class="lnk" data-a="addset" data-i="${i}">+ Satz</button>${e.sets.length>1?`<button class="lnk" data-a="rmset" data-i="${i}">− Satz</button>`:''}<button class="lnk red" data-a="rmex" data-i="${i}">Entfernen</button></div>
     ${swList('w'+i,e.n,'wsw',i)}${busyList(i,e.n)}
     <input class="t note" placeholder="Notiz, z. B. Sitzhöhe 4" value="${esc(S.notes[e.n]||'')}" data-f="note" data-n="${esc(e.n)}">
-    <div class="sh"><span>Satz</span><span>Zuletzt</span><span>kg</span><span>Wdh</span><span></span></div>
+    <div class="sh"><span>Satz</span><span>Zuletzt</span><span>${e.cardio?'Stufe':'kg'}</span><span>${e.cardio?'Min':'Wdh'}</span><span></span></div>
     ${(e.warm||[]).map((s,j)=>`<div class="set warm ${s.done?'done':''}"><span class="no">Aufw.</span><span class="pv">${Math.round(num(s.kg)/(num(e.sets[0]&&e.sets[0].kg)||1)*100)||''} %</span>
       <input inputmode="decimal" value="${esc(s.kg)}" data-f="wkg" data-i="${i}" data-j="${j}">
       <input inputmode="numeric" value="${esc(s.reps)}" data-f="wreps" data-i="${i}" data-j="${j}">
@@ -454,8 +465,8 @@ function vHist(){
   }
   const wv={},pg=new Set(S.plan.d.flatMap(d=>d.ex.map(e=>MG[e.n]).filter(Boolean))),ws=weekStart();
   for(const s of S.sessions){if(new Date(s.date)<ws)continue;for(const e of s.ex){const g=MG[e.n];if(g){wv[g]=(wv[g]||0)+e.sets.length;pg.add(g)}}}
-  const volH=Object.keys(G).filter(g=>pg.has(g)).map(g=>{const c=wv[g]||0,cl=c<10?'#ff9500':c<=20?'var(--green)':'var(--blue)';return`<div class="vb"><span>${G[g]}</span><span class="bar"><i style="width:${Math.min(100,c/20*100)}%;background:${cl}"></i></span><span class="r" style="text-align:right">${c}</span></div>`}).join('');
-  const best={};for(const s of S.sessions)for(const e of s.ex)for(const x of e.sets)if(!best[e.n]||e1(x)>e1(best[e.n].x))best[e.n]={x,d:s.date};
+  const volH=Object.keys(G).filter(g=>g!=='cardio'&&pg.has(g)).map(g=>{const c=wv[g]||0,cl=c<10?'#ff9500':c<=20?'var(--green)':'var(--blue)';return`<div class="vb"><span>${G[g]}</span><span class="bar"><i style="width:${Math.min(100,c/20*100)}%;background:${cl}"></i></span><span class="r" style="text-align:right">${c}</span></div>`}).join('');
+  const best={};for(const s of S.sessions)for(const e of s.ex)if(MG[e.n]!=='cardio')for(const x of e.sets)if(!best[e.n]||e1(x)>e1(best[e.n].x))best[e.n]={x,d:s.date};
   const gk=Object.keys(G),bl=Object.keys(best).sort((p,q)=>(gk.indexOf(MG[p])-gk.indexOf(MG[q]))||p.localeCompare(q)).map(n=>`<div class="cell"><span>${esc(n)}</span><span class="r">${fmt(best[n].x.kg)} kg × ${best[n].x.reps}<br><span style="font-size:12px">${new Date(best[n].d).toLocaleDateString('de-DE',{day:'numeric',month:'short'})}</span></span></div>`).join('');
   return`<h1>Verlauf</h1><div class="sub">${S.sessions.length} Einheiten gespeichert</div>
   <h2>Sätze pro Muskel · diese Woche</h2><div class="group" style="padding:6px 0">${volH}</div>
@@ -472,6 +483,7 @@ function vPlan(){
   <h2>Trainingstage</h2><div class="group">${p.d.map((d,i)=>`<button class="cell" data-a="go" data-i="day-${i}"><span>Tag ${i+1} · ${esc(d.name)}</span><span class="r chev">${d.ex.length}</span></button>`).join('')}</div>
   <h2>Einstellungen</h2><div class="group">
     <button class="cell" data-a="go" data-i="optionen"><span>Wochentage, Pausen & Steigerung</span><span class="r chev">${S.wd.map(q=>WD[q]).join(' ')}</span></button>
+    <button class="cell" data-a="goeig"><span>Eigene Übungen</span><span class="r chev">${S.custom.length||''}</span></button>
     <button class="cell" data-a="go" data-i="geraete"><span>Meine Geräte</span><span class="r chev">${S.no.length?S.no.length+' fehlen':'alle'}</span></button>
     <button class="cell" data-a="go" data-i="speicher"><span>Speicherung & Sicherung</span><span class="r chev" id="syncr">${SYNC[sync][2]}</span></button>
     <button class="cell" data-a="go" data-i="homescreen"><span>Auf den Home-Bildschirm</span><span class="r chev"></span></button></div>
@@ -501,8 +513,10 @@ function vOpt(){
   <h2>Aufwärmsätze vorschlagen</h2><div class="group ex">${seg('wu',['an','aus'],S.warm?'an':'aus')}</div>`;
 }
 function vGer(){
-  return`${nav('Plan')}<h1>Meine Geräte</h1><div class="sub">Tippe an, was dein Studio nicht hat.</div>${banner()}
-  ${Object.entries(MACH).map(([g,l])=>`<h2>${G[g]}</h2><div class="group ex" style="padding-top:8px"><div class="tags" style="margin-top:0">${l.map(n=>`<button class="tag btnt ${has(n)?'':'off'}" data-a="gtog" data-n="${esc(n)}">${esc(n)}</button>`).join('')}</div></div>`).join('')}`;
+  const mach=Object.entries(MACH).map(([g,l])=>[g,l.filter(n=>['M','K','SM','S'].includes(MT[n]))]).filter(x=>x[1].length);
+  return`${nav('Plan')}<h1>Meine Geräte</h1><div class="sub">Tippe an, was dein Studio nicht hat. Der Plan nimmt dann automatisch Ersatz.</div>${banner()}
+  <h2>Ausstattung</h2><div class="group ex" style="padding-top:8px"><div class="tags" style="margin-top:0">${Object.entries(TY).filter(([k])=>k!=='C').map(([k,l])=>`<button class="tag btnt ${S.noT.includes(k)?'off':''}" data-a="ttog" data-i="${k}">${l}</button>`).join('')}</div></div>
+  ${mach.map(([g,l])=>`<h2>${G[g]}</h2><div class="group ex" style="padding-top:8px"><div class="tags" style="margin-top:0">${l.map(n=>`<button class="tag btnt ${has(n)?'':'off'}" data-a="gtog" data-n="${esc(n)}">${esc(n)}</button>`).join('')}</div></div>`).join('')}`;
 }
 function vSpeicher(){
   return`${nav('Plan')}<h1>Speicherung</h1>${banner()}
@@ -536,20 +550,35 @@ function vErf(){
   <h2>Streak-Abzeichen</h2><div class="group badges">${SM.map(m=>`<div class="badge ${st.hits[m]?'on':''}"><div class="c">${m}</div>${m} Tage<br>${st.hits[m]?dd(st.hits[m]):'gesperrt'}</div>`).join('')}</div>
   <h2>Einheiten-Abzeichen</h2><div class="group badges">${TM.map(m=>`<div class="badge t ${th[m]?'on':''}"><div class="c">${m}</div>${m===1?'Erstes Training':m+' Einheiten'}<br>${th[m]?dd(th[m]):'gesperrt'}</div>`).join('')}</div>`;
 }
-function pickHtml(q){
-  q=(q||'').trim().toLowerCase();const inL=pickFor.t==='w'?S.active.ex.map(e=>e.n):S.plan.d[pickFor.i].ex.map(e=>e.n);
-  let out=Object.entries(MACH).map(([g,l])=>{const f=l.filter(n=>!q||n.toLowerCase().includes(q)||G[g].toLowerCase().includes(q));if(!f.length)return'';
-    return`<h2>${G[g]}</h2><div class="group">${f.map(n=>`<button class="cell" data-a="pickadd" data-n="${esc(n)}"><span>${esc(n)}${has(n)?'':' <span class="mut sm">(nicht im Studio)</span>'}</span><span class="r" style="color:var(--blue);font-size:22px">${inL.includes(n)?'<span class="mut sm">schon drin</span>':'+'}</span></button>`).join('')}</div>`}).join('');
-  const exact=LIB.some(n=>n.toLowerCase()===q);
-  if(q&&!exact)out=`<div class="group" style="margin-top:14px"><button class="cell" data-a="pickadd" data-n="${esc($('#q')?$('#q').value.trim():q)}"><span>Eigene Übung: <b>${esc($('#q')?$('#q').value.trim():q)}</b></span><span class="r" style="color:var(--blue);font-size:22px">+</span></button></div>`+out;
-  return out||'<div class="mut sm" style="margin:16px">Nichts gefunden.</div>';
+let pickT='all',cdraft={g:null,t:'M'};
+function addPicked(n){const c=MG[n]==='cardio',sx=c?1:3,r=c?[20,30]:[8,12];if(pickFor&&pickFor.t==='w'&&S.active){S.active.ex.push(buildSets({n,s:sx,r}));save();go('workout',n+' hinzugefügt.')}else if(pickFor&&pickFor.t==='p'&&S.plan.d[pickFor.i]){S.plan.d[pickFor.i].ex.push(E(n,sx,r[0],r[1]));save();go('day-'+pickFor.i,n+' hinzugefügt.')}else go('plan')}
+const grpChips=()=>Object.keys(G).map(g=>`<button class="tag btnt ${cdraft.g===g?'sel':''}" data-a="cgrp" data-i="${g}">${G[g]}</button>`).join('');
+const typChips=()=>Object.keys(TY).map(t=>`<button class="tag btnt ${cdraft.t===t?'sel':''}" data-a="ctyp" data-i="${t}">${TY[t]}</button>`).join('');
+function vEigene(){
+  return`${nav(pickFor?'Auswahl':'Plan')}<h1>Eigene Übung</h1><div class="sub">Für alles, was in der Liste fehlt.</div>${banner()}
+  <h2>Name</h2><div class="group ex"><input class="t" id="cn" placeholder="z. B. Brustpresse Gym80" autocomplete="off"></div>
+  <h2>Muskel</h2><div class="group ex"><div class="tags" id="cgrps" style="margin-top:0">${grpChips()}</div></div>
+  <h2>Art</h2><div class="group ex"><div class="tags" id="ctyps" style="margin-top:0">${typChips()}</div></div>
+  <button class="btn" data-a="csave">Speichern${pickFor?' und hinzufügen':''}</button>
+  ${S.custom.length?`<h2>Deine eigenen Übungen</h2><div class="group">${S.custom.map(c=>`<div class="cell"><span>${esc(c.n)}<br><span class="mut sm">${G[c.g]||''} · ${TY[c.t]||''}</span></span><button class="lnk red" data-a="cdel" data-n="${esc(c.n)}">Löschen</button></div>`).join('')}</div>`:''}`;
 }
-function vPick(){return`${nav(backLabel())}<h1>Übung hinzufügen</h1><input class="t" id="q" data-f="q" placeholder="Suchen oder eigene Übung eingeben" style="margin-top:16px" autocomplete="off"><div id="picklist">${pickHtml('')}</div>`}
+function pickHtml(q){
+  q=(q||'').trim().toLowerCase();const inL=pickFor.t==='w'&&S.active?S.active.ex.map(e=>e.n):pickFor.t==='p'&&S.plan.d[pickFor.i]?S.plan.d[pickFor.i].ex.map(e=>e.n):[];
+  const raw=$('#q')?$('#q').value.trim():q;let cnt=0;
+  let out=Object.entries(MACH).map(([g,l])=>{const f=l.filter(n=>(pickT==='all'||MT[n]===pickT)&&(!q||n.toLowerCase().includes(q)||(ALIAS[n]||'').includes(q)||G[g].toLowerCase().includes(q)||(TY[MT[n]]||'').toLowerCase().includes(q)));if(!f.length)return'';cnt+=f.length;
+    return`<h2>${G[g]}</h2><div class="group">${f.map(n=>`<button class="cell" data-a="pickadd" data-n="${esc(n)}"><span>${esc(n)}<br><span class="mut" style="font-size:12px">${TY[MT[n]]||''}${has(n)?'':' · nicht im Studio'}</span></span><span class="r" style="color:var(--blue);font-size:22px">${inL.includes(n)?'<span class="mut sm">schon drin</span>':'+'}</span></button>`).join('')}</div>`}).join('');
+  const exact=LIB.some(n=>n.toLowerCase()===q);
+  out=`<div class="group" style="margin-top:14px"><button class="cell" data-a="pickadd" data-n="${esc(q&&!exact?raw:'')}" ${q&&!exact?'':'data-new="1"'}><span style="color:var(--blue)">${q&&!exact?'Eigene Übung anlegen: <b>'+esc(raw)+'</b>':'Eigene Übung anlegen'}</span><span class="r chev"></span></button></div><div class="mut sm" style="margin:10px 16px 0">${cnt} Übungen</div>`+out;
+  return out;
+}
+function vPick(){pickT='all';return`${nav(backLabel())}<h1>Übung hinzufügen</h1><input class="t" id="q" data-f="q" placeholder="Suchen, z. B. Brust, Kabel, Curls" style="margin-top:16px" autocomplete="off">
+  <div class="seg multi" style="margin-top:12px;overflow-x:auto;flex-wrap:nowrap">${[['all','Alle']].concat(Object.entries(TY)).map(([k,l])=>`<button class="${k==='all'?'on':''}" style="flex:none;padding:9px 12px" data-a="ptyp" data-i="${k}">${l}</button>`).join('')}</div>
+  <div id="picklist">${pickHtml('')}</div>`}
 function render(){
   const t=tabOf(route);
   $('#tabs').innerHTML=S.plan?[['train','Training'],['hist','Verlauf'],['plan','Plan']].map(([k,l])=>`<button class="${t===k?'on':''}" data-a="tab" data-i="${k}"><svg viewBox="0 0 24 24">${ICO[k]}</svg>${l}</button>`).join(''):'';
   const m=/^day-(\d+)$/.exec(route);
-  $('#app').innerHTML=route==='start'?vStart(false):route==='neuerplan'?vStart(true):route==='workout'?vWorkout():route==='hist'?vHist():route==='plan'?vPlan():m?vDay(+m[1]):route==='optionen'?vOpt():route==='geraete'?vGer():route==='speicher'?vSpeicher():route==='homescreen'?vHome():route==='erfolge'?vErf():route==='uebung'?vPick():vTrain();
+  $('#app').innerHTML=route==='start'?vStart(false):route==='neuerplan'?vStart(true):route==='workout'?vWorkout():route==='hist'?vHist():route==='plan'?vPlan():m?vDay(+m[1]):route==='optionen'?vOpt():route==='geraete'?vGer():route==='speicher'?vSpeicher():route==='homescreen'?vHome():route==='erfolge'?vErf():route==='uebung'?vPick():route==='eigene'?vEigene():vTrain();
   tickClock();
 }
 
@@ -560,12 +589,20 @@ document.addEventListener('click',async ev=>{
   if(!['conf','ck','wck','rest'].includes(a))conf=null;
   if(a==='back'){go(parent(route));return}
   if(a==='go'){go(i);return}
+  if(a==='goeig'){pickFor=null;cdraft={g:null,t:'M'};go('eigene');return}
   if(a==='tab'){go(i);return}
   if(a==='start'){startDay(k);return}
   if(a==='finish'){finish();return}
   if(a==='pickw'){pickFor={t:'w'};go('uebung');return}
   if(a==='pickp'){pickFor={t:'p',i:k};go('uebung');return}
-  if(a==='pickadd'){if(!n)return;if(pickFor.t==='w'){S.active.ex.push(buildSets({n,s:3,r:[8,12]}));save();go('workout',n+' hinzugefügt.')}else{S.plan.d[pickFor.i].ex.push(E(n,3,8,12));save();go('day-'+pickFor.i,n+' hinzugefügt.')}return}
+  if(a==='pickadd'){if(!n){cdraft={g:null,t:'M'};go('eigene');return}if(!MG[n]){go('eigene');const f=$('#cn');if(f)f.value=n;return}addPicked(n);return}
+  if(a==='cgrp'){cdraft.g=i;$('#cgrps').innerHTML=grpChips();return}
+  if(a==='ctyp'){cdraft.t=i;$('#ctyps').innerHTML=typChips();return}
+  if(a==='csave'){const nm=($('#cn').value||'').trim();if(!nm){msg='Bitte einen Namen eingeben.';render();return}if(MG[nm]&&!S.custom.some(c=>c.n===nm)){msg='Diese Übung gibt es schon. Such sie in der Liste.';render();return}if(!cdraft.g){msg='Bitte einen Muskel wählen.';render();const f=$('#cn');if(f)f.value=nm;return}
+    S.custom=S.custom.filter(c=>c.n!==nm).concat([{n:nm,g:cdraft.g,t:cdraft.t||'M'}]);rebuildLib();save();cdraft={g:null,t:'M'};if(pickFor)addPicked(nm);else go('plan',nm+' angelegt.');return}
+  if(a==='cdel'){S.custom=S.custom.filter(c=>c.n!==n);rebuildLib();save();render();return}
+  if(a==='ptyp'){pickT=i;$('#picklist').innerHTML=pickHtml($('#q')?$('#q').value:'');document.querySelectorAll('[data-a=ptyp]').forEach(x=>x.classList.toggle('on',x.dataset.i===i));return}
+  if(a==='ttog'){S.noT=S.noT.includes(i)?S.noT.filter(x=>x!==i):[...S.noT,i];const r=fitPlan(S.plan);S.plan=r.plan;msg=r.c?r.c+' Übung(en) im Plan automatisch ersetzt.':'';save();render();return}
   if(a==='startplan'){const p=PLANS.find(x=>x.id===ob.pick);if(!p)return;S.planId=p.id;S.pv=PV;S.plan=fitPlan({name:p.name,d:clone(p.d)}).plan;S.next=0;S.active=null;save();go('train');return}
   if(a==='cancel'){S.active=null;stopRest();lockScreen(false);save();go('train');return}
   if(a==='days'){ob={days:k,pick:null}}
