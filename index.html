@@ -54,6 +54,9 @@ button.no.st-D{color:#fff;background:#ff9500;font-size:12px}button.no.st-RP{colo
 .rir{display:flex;align-items:center;gap:6px;margin:2px 0 8px 36px;flex-wrap:wrap}.rir span{font-size:13px;color:var(--mut);margin-right:2px}
 .rir button{background:var(--fill);color:var(--blue);border-radius:99px;min-width:38px;padding:7px 10px;font-weight:600;font-size:14px}
 .rirl{margin:0 0 6px 36px}.rirl button{font-size:12px;color:var(--mut)}
+.pill{font-size:12px;font-weight:600;padding:2px 8px;border-radius:99px;margin-left:4px;white-space:nowrap}.pill.up{background:rgba(52,199,89,.16);color:var(--green)}.pill.dn{background:rgba(255,149,0,.16);color:#ff9500}.pill.n{background:var(--fill);color:var(--mut)}
+.more{color:var(--blue);background:var(--fill);border-radius:10px;padding:4px 10px;font-size:15px;font-weight:700;letter-spacing:1px;flex:none}
+.ssl{color:var(--blue)}.rv{font-size:15px;font-weight:700;color:#fff}
 .calc{margin-top:10px;font-size:15px;font-weight:600;color:var(--blue)}.calc:empty{display:none}
 .hero{background:var(--card);border-radius:26px;padding:22px;margin-top:20px}
 .hero .k{color:var(--mut);font-size:13px;text-transform:uppercase;letter-spacing:.3px}
@@ -203,7 +206,7 @@ const PRI={M:0,K:1,SM:2,KH:3,LH:3,SZ:3,KB:4,KG:4,B:5,S:4,C:6};
 function alts(n){const g=MG[n];if(!g)return[];const l=[g,...REL[g]].flatMap(x=>MACH[x].map(y=>[y,x===g?0:1])).filter(([x])=>x!==n&&has(x));l.sort((p,q)=>p[1]-q[1]||(PRI[MT[p[0]]]??9)-(PRI[MT[q[0]]]??9));return l.map(x=>x[0])}
 function fitDay(day){const used=[],out=[];for(const e of day.ex){let n=e.n;if(!has(n)){const a=alts(n).filter(x=>!used.includes(x));n=a[0]||n}used.push(n);out.push({...e,n})}return{...day,ex:out}}
 function fitPlan(p){let c=0;const d=p.d.map(day=>{const f=fitDay(day);f.ex.forEach((e,i)=>{if(e.n!==day.ex[i].n)c++});return f});return{plan:{...p,d},c}}
-function migrate(){if(!S.eq)S.eq={};if(!S.plates)S.plates=[25,20,15,10,5,2.5,1.25];if(S.rirOn===undefined)S.rirOn=true;if(!S.no)S.no=[];if(!S.noT)S.noT=[];if(!S.custom)S.custom=[];rebuildLib();if(!S.wd||!S.wd.length)S.wd=[0,1,2,3,4,5];if(!S.ov)S.ov={};if(!S.mv)S.mv=[];if(S.warm===undefined)S.warm=true;
+function migrate(){if(!S.autoBk)S.autoBk='w';if(!S.eq)S.eq={};if(!S.plates)S.plates=[25,20,15,10,5,2.5,1.25];if(S.rirOn===undefined)S.rirOn=true;if(!S.no)S.no=[];if(!S.noT)S.noT=[];if(!S.custom)S.custom=[];rebuildLib();if(!S.wd||!S.wd.length)S.wd=[0,1,2,3,4,5];if(!S.ov)S.ov={};if(!S.mv)S.mv=[];if(S.warm===undefined)S.warm=true;
   if(S.plan&&(S.pv||1)<2){const p=PLANS.find(x=>x.id===S.planId);if(p)S.plan=fitPlan({name:p.name,d:clone(p.d)}).plan}
   else if(S.plan&&(S.pv||1)<3){S.plan.d.forEach(day=>{if(day.name==='Brust & Rücken'&&!day.ex.some(e=>e.ss))day.ex.forEach((e,k)=>{if(k<6&&k+1-(k%2)<day.ex.length)e.ss='s'+(k>>1)})})}
   S.pv=PV}
@@ -213,7 +216,7 @@ const num=v=>{const x=parseFloat(String(v).replace(',','.'));return isNaN(x)?0:x
 const fmt=n=>String(Math.round(n*100)/100).replace('.',',');
 const clone=o=>JSON.parse(JSON.stringify(o));
 const KEY='trn1';
-const blank=()=>({v:1,ts:0,eq:{},plates:[25,20,15,10,5,2.5,1.25],rirOn:true,wd:[0,1,2,3,4,5],ov:{},mv:[],warm:true,planId:null,plan:null,pv:PV,next:0,no:[],notes:{},rest:90,step:2.5,del:[],active:null,sessions:[]});
+const blank=()=>({v:1,ts:0,autoBk:'w',eq:{},plates:[25,20,15,10,5,2.5,1.25],rirOn:true,wd:[0,1,2,3,4,5],ov:{},mv:[],warm:true,planId:null,plan:null,pv:PV,next:0,no:[],notes:{},rest:90,step:2.5,del:[],active:null,sessions:[]});
 let S=(()=>{try{const x=JSON.parse(localStorage.getItem(KEY));if(x&&x.v)return Object.assign(blank(),x)}catch(e){}return blank()})();
 migrate();
 let homeFrom='train',ob={days:null,pick:null},hx=null,sw=null,conf=null,msg='',flash='',pickFor=null,route='train';
@@ -357,7 +360,8 @@ function buildSets(ex){
     sets.push({kg:kg!==null?fmt(kg):'',reps:p&&!hit?String(heavy?ex.r[0]:Math.min(p.reps,ex.r[1])):String(ex.r[0]),pv:p?fmt(p.kg)+'×'+p.reps+(p.rir!=null?' @'+p.rir:''):'–',t:'N',rir:null,done:false});
   }
   const tip=!l?'Erstes Mal: Gewicht wählen, mit dem alle Wiederholungen sauber gehen.':easy?'Ziel locker geschafft (RIR 3+): heute +'+fmt(2*S.step)+' kg.':hit?'Ziel geschafft: heute +'+fmt(S.step)+' kg.':heavy?'Letztes Mal zu schwer (unter '+ex.r[0]+' Wdh bei RIR 0): heute −'+fmt(S.step)+' kg.':dl?'3 Einheiten ohne Fortschritt: heute 10 % leichter, danach wieder steigern.':'Gleiches Gewicht, versuche mehr Wiederholungen.';
-  return{n:ex.n,s:ex.s,r:ex.r,ss:ex.ss,sets,tip,dl,warm:[]};
+  const tk=!l?'':easy?'+'+fmt(2*S.step)+' kg':hit?'+'+fmt(S.step)+' kg':heavy?'−'+fmt(S.step)+' kg':dl?'Deload':'mehr Wdh';
+  return{n:ex.n,s:ex.s,r:ex.r,ss:ex.ss,sets,tip,tk,dl,warm:[]};
 }
 const PLATE_RX=/Hammer|Beinpresse|Hackenschmidt|Pendulum|Belt Squat|V-Squat|T-Bar|Landmine|Meadows|Seal Row/;
 function eqOf(n){if(S.eq[n])return S.eq[n];const t=MT[n];
@@ -365,22 +369,30 @@ function eqOf(n){if(S.eq[n])return S.eq[n];const t=MT[n];
   if(PLATE_RX.test(n))return{m:'p',bar:0};if(t==='M'||t==='K')return{m:'s',start:5,step:5};return{m:'o'}}
 function calcTxt(e){if(!e||e.cardio)return'';const c=eqOf(e.n);if(c.m==='o')return'';
   const j=Math.max(0,e.sets.findIndex(s=>!s.done)),st=e.sets[j===-1?e.sets.length-1:j]||e.sets[0];if(!st)return'';const kg=num(st.kg);if(kg<=0)return'';
-  const pre='Satz '+((e.sets.indexOf(st))+1)+' · '+fmt(kg)+' kg: ';
-  if(c.m==='s'){const stp=c.step||5,lv=Math.max(1,Math.round((kg-(c.start||0))/stp)+1),real=(c.start||0)+(lv-1)*stp;return pre+'Stufe '+lv+(Math.abs(real-kg)>.01?' (= '+fmt(real)+' kg)':'')}
-  let side=(kg-(c.bar||0))/2;if(side<0)return pre+'leichter als die Stange ('+fmt(c.bar)+' kg)';if(side===0)return pre+'nur die Stange';
+  const pre='';
+  if(c.m==='s'){const stp=c.step||5,lv=Math.max(1,Math.round((kg-(c.start||0))/stp)+1),real=(c.start||0)+(lv-1)*stp;return 'Stufe '+lv+(Math.abs(real-kg)>.01?' = '+fmt(real)+' kg':'')}
+  let side=(kg-(c.bar||0))/2;if(side<0)return 'Unter Stangengewicht';if(side===0)return 'Nur Stange';
   const used=[];for(const p of S.plates.slice().sort((a,b)=>b-a)){while(side>=p-1e-9){used.push(p);side-=p}}
   const real=(c.bar||0)+2*used.reduce((a,b)=>a+b,0);
-  return pre+'pro Seite '+(used.length?used.map(fmt).join(' + '):'–')+(Math.abs(real-kg)>.01?' (= '+fmt(real)+' kg)':'')}
+  return 'Pro Seite '+(used.length?used.map(fmt).join(' + '):'–')+(Math.abs(real-kg)>.01?' = '+fmt(real)+' kg':'')}
 function eqPanel(i,e){if(sw!=='eq'+i)return'';const c=eqOf(e.n);
   return`<div class="group" style="background:var(--fill);padding:12px;margin-top:10px;border-radius:14px">${seg('eqm',['p','s','o'],c.m,v=>({p:'Scheiben',s:'Gewichtsblock',o:'Aus'})[v]).replace(/data-a="eqm"/g,`data-a="eqm" data-n="${i}"`)}
   ${c.m==='p'?`<div class="sm mut" style="margin:10px 0 6px">Stange/Schlitten wiegt (kg)</div><input inputmode="decimal" value="${fmt(c.bar||0)}" data-f="eqbar" data-i="${i}">`:''}
   ${c.m==='s'?`<div class="set" style="grid-template-columns:1fr 1fr;margin-top:10px"><input inputmode="decimal" value="${fmt(c.start||0)}" data-f="eqstart" data-i="${i}"><input inputmode="decimal" value="${fmt(c.step||5)}" data-f="eqstep" data-i="${i}"></div><div class="mut" style="font-size:12px;display:grid;grid-template-columns:1fr 1fr;text-align:center"><span>Stufe 1 = kg</span><span>pro Stufe + kg</span></div>`:''}
-  <div class="mut sm" style="margin-top:8px">Gilt für dieses Gerät dauerhaft.</div></div>`}
+  </div>`}
 const TL={N:'',D:'Drop',RP:'Rest-Pause',F:'Failure'};
 function addWarm(){if(!S.warm)return;const seen=new Set();for(const e of S.active.ex){const g=MG[e.n];if(!['brust','lat','ruder','sch','quad'].includes(g)||seen.has(g))continue;seen.add(g);const w=num(e.sets[0]&&e.sets[0].kg);if(w<=0)continue;
   e.warm=[[.5,10],[.7,5]].concat(w>=60?[[.85,2]]:[]).map(([f,r])=>({kg:fmt(rnd(w*f)),reps:String(r),done:false}))}}
 async function lockScreen(on){try{if(on&&navigator.wakeLock&&!wake)wake=await navigator.wakeLock.request('screen');if(!on&&wake){await wake.release();wake=null}}catch(e){}}
 function startDay(i){const day=fitDay(S.plan.d[i]);S.active={i,name:day.name,t:Date.now(),ex:day.ex.map(buildSets)};addWarm();flash='';save();lockScreen(true);go('workout')}
+function bkFile(){return new File([JSON.stringify(S)],'training-sicherung-'+dkey(new Date())+'.json',{type:'application/json'})}
+function autoBackup(){
+  const due=S.autoBk==='t'||(S.autoBk==='w'&&(!S.lastBk||Date.now()-S.lastBk>6.5*864e5));if(!due)return;
+  try{const f=bkFile();
+    if(navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f],title:'Training Sicherung'}).then(()=>{S.lastBk=Date.now();save();render()}).catch(()=>{})}
+    else{const u=URL.createObjectURL(f),l=document.createElement('a');l.href=u;l.download=f.name;document.body.appendChild(l);l.click();l.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);S.lastBk=Date.now();save()}
+  }catch(e){}
+}
 function finish(){
   const a=S.active;
   const ex=a.ex.map(e=>({n:e.n,dl:e.dl||undefined,sets:e.sets.filter(s=>s.done&&num(s.reps)>0).map(s=>Object.assign({kg:num(s.kg),reps:num(s.reps)},s.t&&s.t!=='N'?{t:s.t}:{},s.rir!=null?{rir:s.rir}:{}))})).filter(e=>e.sets.length);
@@ -392,7 +404,7 @@ function finish(){
   S.next=(a.i+1)%S.plan.d.length;S.active=null;stopRest();lockScreen(false);
   const st=stats(),nb=badgeCount()-b0;
   flash=`Gespeichert: ${esc(s.day)} · ${s.min} min · ${fmt(vol(s))} kg bewegt`+(pr.length?`<br><span class="pr">Neuer Bestwert: ${pr.map(esc).join(', ')}</span>`:'')+(nb>0?`<br><b>Neuer Erfolg freigeschaltet</b> · Streak ${st.cur} ${st.cur===1?'Tag':'Tage'}`:'');
-  save();go('train');
+  save();go('train');autoBackup();
 }
 function startRest(sec){restEnd=Date.now()+sec*1000;clearInterval(restI);restI=setInterval(tickRest,250);tickRest()}
 function stopRest(){clearInterval(restI);restEnd=0;$('#rest').style.display='none'}
@@ -405,9 +417,9 @@ const weekStart=()=>{const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate(
 const rr=e=>e.r[0]+(e.r[1]>e.r[0]?'–'+e.r[1]:'');
 function seg(name,vals,cur,lab){return`<div class="seg">${vals.map(v=>`<button class="${v===cur?'on':''}" data-a="${name}" data-i="${v}">${lab?lab(v):v}</button>`).join('')}</div>`}
 function swList(key,cur,act,i,j){if(sw!==key)return'';const l=alts(cur);
-  return`<div class="tags">${l.length?l.map(x=>`<button class="tag btnt" data-a="${act}" data-i="${i}" ${j!==undefined?`data-j="${j}"`:''} data-n="${esc(x)}">${esc(x)}</button>`).join(''):'<span class="mut sm">Keine Alternative vorhanden.</span>'}</div>${act==='wsw'?'<div class="mut sm" style="margin-top:6px">Gilt nur für heute. Dauerhaft tauschen unter Plan.</div>':''}`}
+  return`<div class="tags">${l.length?l.map(x=>`<button class="tag btnt" data-a="${act}" data-i="${i}" ${j!==undefined?`data-j="${j}"`:''} data-n="${esc(x)}">${esc(x)}</button>`).join(''):'<span class="mut sm">Keine Alternative vorhanden.</span>'}</div>`}
 function busyList(i,cur){if(sw!=='b'+i)return'';const inW=S.active.ex.map(e=>e.n),l=alts(cur).filter(x=>!inW.includes(x));
-  return`<div class="mut sm" style="margin-top:8px">Gerät besetzt? Später machen oder heute ein freies nehmen:</div><div class="tags"><button class="tag btnt" data-a="later" data-i="${i}" style="background:var(--blue);color:#fff">Später machen</button>${l.map(x=>`<button class="tag btnt" data-a="wsw" data-i="${i}" data-n="${esc(x)}">${esc(x)}</button>`).join('')}</div>`}
+  return`<div class="tags"><button class="tag btnt" data-a="later" data-i="${i}" style="background:var(--blue);color:#fff">Später machen</button>${l.map(x=>`<button class="tag btnt" data-a="wsw" data-i="${i}" data-n="${esc(x)}">${esc(x)}</button>`).join('')}</div>`}
 const banner=()=>msg?`<div class="banner ${/Hake|keine|nicht|Kein|Bitte|gibt es schon/.test(msg)?'warn':''}">${esc(msg)}</div>`:'';
 
 /* ---------- Ansichten ---------- */
@@ -459,12 +471,13 @@ function vWorkout(){
   const dn=a.ex.reduce((x,e)=>x+e.sets.filter(s=>s.done).length,0),tot=a.ex.reduce((x,e)=>x+e.sets.length,0);
   return`${nav('Übersicht')}<h1>${esc(a.name)}</h1><div class="sub"><span class="clock" id="clock">0:00</span> · ${dn}/${tot} Sätze</div>
   ${banner()}
-  ${a.ex.map((e,i)=>`<div class="group ex ${e.ss?'ssb':''}" id="ex${i}">
-    ${e.ss?`<span class="tag ss">Supersatz ${ssn[i]}${partner(i)>=0?' · mit '+esc(a.ex[partner(i)].n):''}</span>`:''}
-    <div class="exn">${esc(e.n)}</div><div class="mut sm">${e.s} × ${rr(e)} Wdh · ${esc(e.tip)}</div>
-    <div class="acts"><button class="lnk" data-a="sw" data-i="b${i}">Belegt</button><button class="lnk" data-a="sw" data-i="w${i}">Tauschen</button><button class="lnk" data-a="addset" data-i="${i}">+ Satz</button>${!e.cardio?`<button class="lnk" data-a="adddrop" data-i="${i}">+ Drop</button>`:''}${e.sets.length>1?`<button class="lnk" data-a="rmset" data-i="${i}">− Satz</button>`:''}<button class="lnk red" data-a="rmex" data-i="${i}">Entfernen</button></div>
-    ${swList('w'+i,e.n,'wsw',i)}${busyList(i,e.n)}
-    <input class="t note" placeholder="Notiz, z. B. Sitzhöhe 4" value="${esc(S.notes[e.n]||'')}" data-f="note" data-n="${esc(e.n)}">
+  ${a.ex.map((e,i)=>{const pc=!e.tk?'':e.tk[0]==='+'?'up':e.tk[0]==='−'||e.tk==='Deload'?'dn':'n';return`<div class="group ex ${e.ss?'ssb':''}" id="ex${i}">
+    <div class="exh"><div style="min-width:0"><div class="exn">${e.ss?`<span class="ssl">${ssn[i]}</span> `:''}${esc(e.n)}</div>
+      <div class="mut sm">${e.s} × ${rr(e)}${e.tk?` <span class="pill ${pc}">${e.tk}</span>`:''}${S.notes[e.n]&&sw!=='n'+i?' · '+esc(S.notes[e.n]):''}</div></div>
+      <button class="more" data-a="sw" data-i="m${i}" aria-label="Optionen">•••</button></div>
+    ${sw==='m'+i?`<div class="tags"><button class="tag btnt" data-a="sw" data-i="b${i}">Belegt</button><button class="tag btnt" data-a="sw" data-i="w${i}">Tauschen</button><button class="tag btnt" data-a="addset" data-i="${i}">+ Satz</button>${e.sets.length>1?`<button class="tag btnt" data-a="rmset" data-i="${i}">− Satz</button>`:''}${!e.cardio?`<button class="tag btnt" data-a="adddrop" data-i="${i}">+ Drop</button><button class="tag btnt" data-a="sw" data-i="eq${i}">Scheiben/Stufe</button>`:''}<button class="tag btnt" data-a="sw" data-i="n${i}">Notiz</button><button class="tag btnt" data-a="rmex" data-i="${i}" style="color:var(--red)">Entfernen</button></div>`:''}
+    ${sw==='n'+i?`<input class="t note" placeholder="Notiz, z. B. Sitzhöhe 4" value="${esc(S.notes[e.n]||'')}" data-f="note" data-n="${esc(e.n)}">`:''}
+    ${swList('w'+i,e.n,'wsw',i)}${busyList(i,e.n)}${!e.cardio?eqPanel(i,e):''}
     <div class="sh"><span>Satz</span><span>Zuletzt</span><span>${e.cardio?'Stufe':'kg'}</span><span>${e.cardio?'Min':'Wdh'}</span><span></span></div>
     ${(e.warm||[]).map((s,j)=>`<div class="set warm ${s.done?'done':''}"><span class="no">Aufw.</span><span class="pv">${Math.round(num(s.kg)/(num(e.sets[0]&&e.sets[0].kg)||1)*100)||''} %</span>
       <input inputmode="decimal" value="${esc(s.kg)}" data-f="wkg" data-i="${i}" data-j="${j}">
@@ -473,11 +486,10 @@ function vWorkout(){
     ${e.sets.map((s,j)=>`<div class="set ${s.done?'done':''}"><button class="no st-${s.t||'N'}" data-a="stype" data-i="${i}" data-j="${j}" aria-label="Satz-Typ ändern">${s.t&&s.t!=='N'?(s.t==='RP'?'RP':s.t):j+1}</button><span class="pv">${esc(s.pv||'–')}</span>
       <input inputmode="decimal" placeholder="${e.cardio?'Stufe':'kg'}" value="${esc(s.kg)}" data-f="kg" data-i="${i}" data-j="${j}">
       <input inputmode="numeric" placeholder="${e.cardio?'Min':'Wdh'}" value="${esc(s.reps)}" data-f="reps" data-i="${i}" data-j="${j}">
-      <button class="ck" data-a="ck" data-i="${i}" data-j="${j}" aria-label="Satz abhaken">${CK}</button></div>
-      ${s.done&&S.rirOn&&!e.cardio?(s.rir==null?`<div class="rir"><span>Noch im Tank?</span>${[0,1,2,3,4].map(v=>`<button data-a="rir" data-i="${i}" data-j="${j}" data-n="${v}">${v===4?'4+':v}</button>`).join('')}</div>`:`<div class="rirl"><button data-a="rir" data-i="${i}" data-j="${j}" data-n="x">${s.t&&s.t!=='N'?TL[s.t]+' · ':''}RIR ${s.rir>=4?'4+':s.rir} · ändern</button></div>`):''}`).join('')}
-    ${!e.cardio?`<div class="calc" id="calc${i}">${esc(calcTxt(e))}</div><button class="lnk" style="font-size:13px" data-a="sw" data-i="eq${i}">${sw==='eq'+i?'Fertig':'Scheiben / Stufe einstellen'}</button>${eqPanel(i,e)}`:''}
-    <div class="mut" style="font-size:12px;margin-top:8px">Tipp auf die Satznummer: Drop, Rest-Pause oder Failure.</div>
-  </div>`).join('')}
+      <button class="ck" data-a="ck" data-i="${i}" data-j="${j}" aria-label="Satz abhaken">${s.done&&s.rir!=null?`<span class="rv">${s.rir>=4?'4+':s.rir}</span>`:CK}</button></div>
+      ${s.done&&S.rirOn&&!e.cardio&&s.rir==null?`<div class="rir"><span>RIR</span>${[0,1,2,3,4].map(v=>`<button data-a="rir" data-i="${i}" data-j="${j}" data-n="${v}">${v===4?'4+':v}</button>`).join('')}</div>`:''}`).join('')}
+    ${!e.cardio?`<div class="calc" id="calc${i}">${esc(calcTxt(e))}</div>`:''}
+  </div>`}).join('')}
   <button class="btn gray" data-a="pickw">+ Übung hinzufügen</button>
   <button class="btn" data-a="finish">Training beenden</button>
   ${conf==='cancel'?`<div class="row2"><button class="btn red" data-a="cancel">Wirklich verwerfen</button><button class="btn gray" data-a="noconf">Zurück</button></div>`:`<button class="btn red" data-a="conf" data-i="cancel">Training verwerfen</button>`}`;
@@ -557,8 +569,10 @@ function vSpeicher(){
   <div class="group ex" style="margin-top:20px"><div class="status sm" id="sync">${syncHtml()}</div>
     <div class="mut sm" style="margin-top:10px">Jede Änderung wird sofort auf deinem Handy gespeichert, auch offline. Ein laufendes Training bleibt erhalten, wenn du die App schließt.</div>
     <div class="mut sm" style="margin-top:10px">Letzte Sicherung: ${S.lastBk?new Date(S.lastBk).toLocaleDateString('de-DE',{day:'numeric',month:'short',year:'numeric'}):'noch keine'}</div></div>
-  ${(!S.lastBk||Date.now()-S.lastBk>7*864e5)&&S.sessions.length?'<div class="banner warn">Sichere einmal pro Woche als Datei, z. B. in iCloud Drive. Wenn das Handy kaputtgeht oder du die App löschst, sind die Daten sonst weg.</div>':''}
-  <h2>Sicherung</h2><div class="group ex"><button class="btn" data-a="dl" style="margin-top:0">Sicherung als Datei speichern</button>
+  
+  <h2>Automatische Sicherung</h2><div class="group ex">${seg('abk',['w','t','o'],S.autoBk,v=>({w:'Wöchentlich',t:'Jedes Training',o:'Aus'})[v])}
+    <div class="mut sm" style="margin-top:10px">Nach dem Training öffnet sich automatisch das Teilen-Menü. Einmal auf <b>In „Dateien“ sichern</b> → iCloud Drive tippen, fertig.</div></div>
+  <h2>Sicherung</h2><div class="group ex"><button class="btn" data-a="dl" style="margin-top:0">Jetzt sichern</button>
     <label class="btn gray" style="cursor:pointer">Sicherung aus Datei laden<input type="file" accept=".json,application/json" data-f="file" style="display:none"></label>
     <div class="row2"><button class="btn gray" data-a="exp">Als Text kopieren</button><button class="btn gray" data-a="csv">Als CSV kopieren</button></div>
     <textarea id="imp" placeholder="Sicherung als Text hier einfügen" style="margin-top:14px"></textarea><button class="lnk" style="margin-top:8px" data-a="imp">Text wiederherstellen</button></div>`;
@@ -677,7 +691,8 @@ document.addEventListener('click',async ev=>{
   else if(a==='exp'||a==='csv'){
     const txt=a==='exp'?JSON.stringify(S):'Datum;Tag;Übung;Satz;kg;Wdh\n'+S.sessions.flatMap(s=>s.ex.flatMap(e=>e.sets.map((x,q)=>[s.date.slice(0,10),s.day,e.n,q+1,fmt(x.kg),x.reps].join(';')))).join('\n');
     try{await navigator.clipboard.writeText(txt);msg=a==='exp'?'Sicherung kopiert. Füge sie z. B. in eine Notiz ein.':'CSV kopiert.'}catch(e){msg='Kopieren wurde vom Browser blockiert.'}}
-  else if(a==='dl'){try{const blob=new Blob([JSON.stringify(S)],{type:'application/json'}),u=URL.createObjectURL(blob),l=document.createElement('a');l.href=u;l.download='training-sicherung-'+dkey(new Date())+'.json';document.body.appendChild(l);l.click();l.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);S.lastBk=Date.now();save();msg='Sicherung gespeichert. Leg die Datei am besten in iCloud Drive ab.'}catch(e){msg='Speichern nicht möglich. Nutze „Als Text kopieren“.'}}
+  else if(a==='abk'){S.autoBk=i;save()}
+  else if(a==='dl'){try{const f=bkFile();if(navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f],title:'Training Sicherung'}).then(()=>{S.lastBk=Date.now();save();msg='Sicherung gespeichert.';render()}).catch(()=>{});return}}catch(e){}try{const blob=new Blob([JSON.stringify(S)],{type:'application/json'}),u=URL.createObjectURL(blob),l=document.createElement('a');l.href=u;l.download='training-sicherung-'+dkey(new Date())+'.json';document.body.appendChild(l);l.click();l.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);S.lastBk=Date.now();save();msg='Sicherung gespeichert. Leg die Datei am besten in iCloud Drive ab.'}catch(e){msg='Speichern nicht möglich. Nutze „Als Text kopieren“.'}}
   else if(a==='imp'){try{const x=JSON.parse($('#imp').value);if(!x.v||!Array.isArray(x.sessions))throw 0;S=Object.assign(blank(),x);migrate();S.sessions.forEach(s=>pendingSes.add(s.id));save();msg='Sicherung wiederhergestellt.'}catch(e){msg='Das ist keine gültige Sicherung.'}}
   else return;
   render();
