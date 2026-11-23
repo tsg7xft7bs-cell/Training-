@@ -429,6 +429,7 @@ function finish(){
   flash=`Gespeichert: ${esc(s.day)} · ${s.min} min · ${fmt(vol(s))} kg bewegt`+(pr.length?`<br><span class="pr">Neuer Bestwert: ${pr.map(esc).join(', ')}</span>`:'')+(nb>0?`<br><b>Neuer Erfolg freigeschaltet</b> · Streak ${st.cur} ${st.cur===1?'Tag':'Tage'}`:'');
   save();go('train');autoBackup();
 }
+function setRir(s,v){s.rir=v;if(v===0&&(!s.t||s.t==='N')){s.t='F';s.tAuto=true}else if(s.tAuto&&s.t==='F'&&v!==0){s.t='N';delete s.tAuto}}
 function startRest(sec){restEnd=Date.now()+sec*1000;clearInterval(restI);restI=setInterval(tickRest,250);tickRest()}
 function stopRest(){clearInterval(restI);restEnd=0;$('#rest').style.display='none'}
 function tickRest(){const r=Math.ceil((restEnd-Date.now())/1000);if(r<=0){stopRest();try{navigator.vibrate&&navigator.vibrate([200,100,200])}catch(e){}return}$('#rest').style.display='flex';$('#restt').textContent=Math.floor(r/60)+':'+String(r%60).padStart(2,'0')}
@@ -686,9 +687,9 @@ document.addEventListener('click',async ev=>{
   else if(a==='ck'){const s=S.active.ex[k].sets[j];s.done=!s.done;
     if(s.done){const p=partner(k),ps=p>=0?S.active.ex[p].sets[j]:null;
       if(ps&&!ps.done){stopRest();save();render();const el=document.getElementById('ex'+p);try{el.scrollIntoView({behavior:'smooth',block:'center'})}catch(e){}return}
-      if(s.t==='D')stopRest();else startRest(s.t==='RP'?15:S.rest)}else{stopRest();s.rir=null}save()}
-  else if(a==='stype'){const s=S.active.ex[k].sets[j],o=['N','D','RP','F'];s.t=o[(o.indexOf(s.t||'N')+1)%4];save()}
-  else if(a==='rir'){const s=S.active.ex[k].sets[j];s.rir=n==='x'?null:+n;save()}
+      if(s.t==='D')stopRest();else startRest(s.t==='RP'?15:S.rest)}else{stopRest();setRir(s,null)}save()}
+  else if(a==='stype'){const s=S.active.ex[k].sets[j],o=['N','D','RP','F'];s.t=o[(o.indexOf(s.t||'N')+1)%4];delete s.tAuto;save()}
+  else if(a==='rir'){const s=S.active.ex[k].sets[j];setRir(s,n==='x'?null:+n);save()}
   else if(a==='adddrop'){const e=S.active.ex[k],l=e.sets[e.sets.length-1];e.sets.push({kg:l?fmt(rnd(num(l.kg)*.8)):'',reps:l?l.reps:'',pv:'–',t:'D',rir:null,done:false});save()}
   else if(a==='eqm'){const nm=S.active.ex[+n].n;S.eq[nm]=Object.assign({},eqOf(nm),{m:i});if(i==='p'&&S.eq[nm].bar==null)S.eq[nm].bar=0;if(i==='s'&&S.eq[nm].step==null){S.eq[nm].start=5;S.eq[nm].step=5}save()}
   else if(a==='rirt'){S.rirOn=i==='an';save()}
@@ -724,7 +725,9 @@ document.addEventListener('click',async ev=>{
 document.addEventListener('input',ev=>{
   const t=ev.target,f=t.dataset.f;if(!f)return;const i=+t.dataset.i,j=+t.dataset.j;
   if(f==='q'){$('#picklist').innerHTML=pickHtml(t.value);return}
-  if(f==='kg'||f==='reps'){S.active.ex[i].sets[j][f]=t.value;save();const c=$('#calc'+i);if(c)c.textContent=calcTxt(S.active.ex[i])}
+  if(f==='kg'||f==='reps'){const e=S.active.ex[i],st=e.sets[j];st[f]=t.value;
+    const fl=f+'M';if(j>0)st[fl]=true;else e.sets.forEach((x,q)=>{if(q===0||x.done||x.t==='D'||x[fl])return;x[f]=t.value;const el=document.querySelector('input[data-f="'+f+'"][data-i="'+i+'"][data-j="'+q+'"]');if(el)el.value=t.value});
+    save();const c=$('#calc'+i);if(c)c.textContent=calcTxt(e)}
   else if(f==='eqbar'||f==='eqstart'||f==='eqstep'){const nm=S.active.ex[i].n;S.eq[nm]=Object.assign({},eqOf(nm));S.eq[nm][f.slice(2)]=num(t.value);save();const c=$('#calc'+i);if(c)c.textContent=calcTxt(S.active.ex[i])}
   else if(f==='wkg'||f==='wreps'){S.active.ex[i].warm[j][f==='wkg'?'kg':'reps']=t.value;save()}
   else if(f==='note'){S.notes[t.dataset.n]=t.value;save()}
