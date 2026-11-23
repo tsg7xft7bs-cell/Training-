@@ -4,11 +4,14 @@ const html=fs.readFileSync(new URL('../index.html', import.meta.url),'utf8');con
 const mk=(store)=>new JSDOM(html,{runScripts:'dangerously',url:'https://x.test/',beforeParse(w){if(store)for(const[k,v]of Object.entries(store))w.localStorage.setItem(k,v);w.scrollTo=()=>{};w.Element.prototype.scrollIntoView=function(){w.__scrolled=(w.__scrolled||0)+1};w.addEventListener('error',e=>errs.push(e.message))}});
 let dom=mk(),w=dom.window,d=w.document,E=s=>w.eval(s);let fails=0;const ok=(c,m)=>{console.log((c?'OK  ':'FAIL')+' '+m);if(!c)fails++};
 const c=s=>{const el=d.querySelector(s);if(!el)throw new Error('missing '+s);el.click()};
-ok(html.includes('--blue:#0066cc')&&html.includes('--bg:#f5f5f7')&&html.includes('--fg:#1d1d1f'),'Apple-Farbtokens gesetzt');
-ok(!/linear-gradient/.test(html),'Keine dekorativen Verläufe');
+ok(html.includes('html[data-theme=dark]')&&html.includes('--bg:#000;'),'Helles + schwarzes Farbschema vorhanden');
+ok(/backdrop-filter:blur\(28px\)/.test(html),'Liquid-Glass-Flächen');
 ok(/\.btn\{[^}]*border-radius:9999px/.test(html),'Buttons als Pill');
 ok(!/font-size:1[0-5]px[^}]*\}[^{]*$/.test('')&&!/input[^{]*\{[^}]*font-size:1[0-5]px/.test(html.split('</style>')[0].replace(/\.set\.warm \.no\{[^}]*\}/,'')),'Eingabefelder ≥16px (kein iOS-Zoom)');
 c('[data-a=days][data-i="6"]');c('[data-a=pick][data-i=arn6]');c('[data-a=startplan]');
+ok(d.documentElement.dataset.theme==='dark','Standard: Dunkel');
+E('go("optionen")');c('[data-a=thm][data-i=light]');ok(E('S.theme')==='light'&&d.documentElement.dataset.theme==='light','Umschalten auf Hell');
+c('[data-a=thm][data-i=auto]');ok(d.documentElement.dataset.theme==='auto','Automatisch');c('[data-a=thm][data-i=dark]');E('go("train")');
 c('[data-a=start][data-i="0"]');ok(E('route')==='workout','Training gestartet');
 c('[data-a=ck][data-i="0"][data-j="0"]');
 c('[data-a=finish]');ok(E('S.active')!==null&&d.querySelector('#fin'),'Offene Sätze: Rückfrage statt sofort beenden');
