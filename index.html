@@ -50,13 +50,13 @@ button:active{transform:scale(.97);opacity:.75}
 .tag.off{opacity:.4;text-decoration:line-through}
 .tag.sel{background:var(--blue);color:#fff}
 button.no{font:inherit;font-weight:600;color:var(--mut);background:var(--fill);border-radius:10px;height:40px;font-size:15px}
-button.no.st-D{color:#fff;background:#ff9500;font-size:12px}button.no.st-RP{color:#fff;background:#af52de;font-size:11px}button.no.st-F{color:#fff;background:var(--red);font-size:12px}
+button.no.st-RP{color:#fff;background:#af52de;font-size:11px}button.no.st-F{color:#fff;background:var(--red);font-size:12px}
 .rir{display:flex;align-items:center;gap:6px;margin:2px 0 8px 36px;flex-wrap:wrap}.rir span{font-size:13px;color:var(--mut);margin-right:2px}
 .rir button{background:var(--fill);color:var(--blue);border-radius:99px;min-width:38px;padding:7px 10px;font-weight:600;font-size:14px}
 .rirl{margin:0 0 6px 36px}.rirl button{font-size:12px;color:var(--mut)}
 .pill{font-size:12px;font-weight:600;padding:2px 8px;border-radius:99px;margin-left:4px;white-space:nowrap}.pill.up{background:rgba(52,199,89,.16);color:var(--green)}.pill.dn{background:rgba(255,149,0,.16);color:#ff9500}.pill.n{background:var(--fill);color:var(--mut)}
 .more{color:var(--blue);background:var(--fill);border-radius:10px;padding:4px 10px;font-size:15px;font-weight:700;letter-spacing:1px;flex:none}
-.ssl{color:var(--blue)}.rv{font-size:15px;font-weight:700;color:#fff}
+.rv{font-size:15px;font-weight:700;color:#fff}
 .calc{margin-top:10px;font-size:15px;font-weight:600;color:var(--blue)}.calc:empty{display:none}
 .hero{background:var(--card);border-radius:26px;padding:22px;margin-top:20px}
 .hero .k{color:var(--mut);font-size:13px;text-transform:uppercase;letter-spacing:.3px}
@@ -90,8 +90,6 @@ input:focus,textarea:focus{box-shadow:0 0 0 2px var(--blue)}
 .banner{background:var(--card);border-radius:18px;padding:14px 16px;margin-top:16px;font-size:15px;border-left:4px solid var(--green)}
 .banner.warn{border-left-color:var(--red)}
 .pr{color:var(--green);font-weight:600}
-.tag.ss{background:rgba(0,122,255,.14);color:var(--blue);font-weight:600;font-size:12px;padding:4px 9px;display:inline-block;margin-bottom:6px}
-.ex.ssb{border-left:4px solid var(--blue)}
 .set.warm .no{font-size:11px;font-weight:500}.set.warm input{font-size:15px}
 .vb{display:grid;grid-template-columns:1fr 1.3fr 30px;gap:10px;align-items:center;padding:9px 18px;font-size:15px;position:relative}
 .vb+.vb::before{content:"";position:absolute;top:0;left:18px;right:0;height:.5px;background:var(--sep)}
@@ -181,7 +179,6 @@ const BEINE=D('Beine',[E(HS,4,6,8),E(LP,3,10,12),E(LBB,3,8,10),E(BS,3,12),E(SBB,
 const A_BR=D('Brust & Rücken',[E(BP,4,8,10),E(LZ,4,8,10),E(SBP,3,8,10),E(RM,4,8,10),E(BF,3,12,15),E(KR,3,10,12),E(BAU,3,12,15)]);
 const A_SA=D('Schultern & Arme',[E(SP,4,8,10),E(SH,4,12,15),E(RB,3,12,15),E(BIZ,4,8,12),E(TDM,4,8,12),E(HAM,3,10,12),E(UT,3,10,12)]);
 const A_BE=D('Beine & unterer Rücken',[E(HS,4,6,10),E(LP,3,10,12),E(BS,3,12,15),E(LBB,4,10,12),E(RS,3,12,15),E(WS,4,10,15)]);
-A_BR.ex.forEach((e,k)=>{if(k<6)e.ss='s'+(k>>1)});
 const PH_UP=D('Oberkörper Power',[E(BP,4,3,5),E(RM,4,3,5),E(SP,3,5,8),E(LZ,3,6,10),E(BIZ,3,6,10),E(TDM,3,6,10)]);
 const PH_LO=D('Unterkörper Power',[E(HS,4,3,5),E(LP,5,10,15),E(LBB,3,6,10),E(RS,3,8,10),E(WS,4,6,10)]);
 const PH_UH=D('Oberkörper Hypertrophie',[E(SBP,4,8,12),E(BF,3,10,15),E(KR,4,8,12),E(LZE,3,10,15),E(SH,3,10,15),E(HAM,3,10,15)]);
@@ -196,11 +193,11 @@ const PLANS=[
 {id:'pplu',days:4,name:'PPL + Oberkörper',desc:'Push, Pull, Beine plus ein Oberkörper-Volumentag.',d:[PUSH_A,PULL_A,LEGS_A,UP_B]},
 {id:'bro5',days:5,name:'Bro Split',desc:'Ein Muskel pro Tag: Brust, Rücken, Schultern, Arme, Beine.',d:[BRUST,RUECK,SCHUL,ARME,BEINE]},
 {id:'pplul',days:5,name:'PPL + Upper / Lower',desc:'Push, Pull, Beine, dann Ober- und Unterkörper.',d:[PUSH_A,PULL_A,LEGS_A,UP_B,LO_B]},
-{id:'arn5',days:5,name:'Arnold Split (5 Tage)',desc:'Brust & Rücken, Schultern & Arme, Beine – fortlaufend. Brust- und Rückenübung im Wechsel als Supersatz.',d:[A_BR,A_SA,A_BE,A_BR,A_SA]},
+{id:'arn5',days:5,name:'Arnold Split (5 Tage)',desc:'Brust & Rücken, Schultern & Arme, Beine – fortlaufend.',d:[A_BR,A_SA,A_BE,A_BR,A_SA]},
 {id:'ppl6',days:6,name:'Push Pull Legs 2x',desc:'PPL zweimal pro Woche mit A/B-Variation.',d:[PUSH_A,PULL_A,LEGS_A,PUSH_B,PULL_B,LEGS_B]},
-{id:'arn6',days:6,name:'Arnold Split',desc:'Brust & Rücken, Schultern & Arme, Beine, zweimal pro Woche. Brust- und Rückenübung im Wechsel als Supersatz.',d:[A_BR,A_SA,A_BE,A_BR,A_SA,A_BE]}
+{id:'arn6',days:6,name:'Arnold Split',desc:'Brust & Rücken, Schultern & Arme, Beine, zweimal pro Woche.',d:[A_BR,A_SA,A_BE,A_BR,A_SA,A_BE]}
 ];
-const PV=3;
+const PV=4;
 const has=n=>!(S.no||[]).includes(n)&&!(S.noT||[]).includes(MT[n]);
 const PRI={M:0,K:1,SM:2,KH:3,LH:3,SZ:3,KB:4,KG:4,B:5,S:4,C:6};
 function alts(n){const g=MG[n];if(!g)return[];const l=[g,...REL[g]].flatMap(x=>MACH[x].map(y=>[y,x===g?0:1])).filter(([x])=>x!==n&&has(x));l.sort((p,q)=>p[1]-q[1]||(PRI[MT[p[0]]]??9)-(PRI[MT[q[0]]]??9));return l.map(x=>x[0])}
@@ -208,7 +205,8 @@ function fitDay(day){const used=[],out=[];for(const e of day.ex){let n=e.n;if(!h
 function fitPlan(p){let c=0;const d=p.d.map(day=>{const f=fitDay(day);f.ex.forEach((e,i)=>{if(e.n!==day.ex[i].n)c++});return f});return{plan:{...p,d},c}}
 function migrate(){if(!S.autoBk)S.autoBk='w';if(!S.eq)S.eq={};if(!S.plates)S.plates=[25,20,15,10,5,2.5,1.25];if(S.rirOn===undefined)S.rirOn=true;if(!S.no)S.no=[];if(!S.noT)S.noT=[];if(!S.custom)S.custom=[];rebuildLib();if(!S.wd||!S.wd.length)S.wd=[0,1,2,3,4,5];if(!S.ov)S.ov={};if(!S.mv)S.mv=[];if(S.warm===undefined)S.warm=true;
   if(S.plan&&(S.pv||1)<2){const p=PLANS.find(x=>x.id===S.planId);if(p)S.plan=fitPlan({name:p.name,d:clone(p.d)}).plan}
-  else if(S.plan&&(S.pv||1)<3){S.plan.d.forEach(day=>{if(day.name==='Brust & Rücken'&&!day.ex.some(e=>e.ss))day.ex.forEach((e,k)=>{if(k<6&&k+1-(k%2)<day.ex.length)e.ss='s'+(k>>1)})})}
+  if(S.plan)S.plan.d.forEach(day=>day.ex.forEach(e=>{delete e.ss}));
+  if(S.active)S.active.ex.forEach(e=>{delete e.ss});
   S.pv=PV}
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -366,9 +364,8 @@ function lastFor(n){for(const s of S.sessions){const e=s.ex.find(x=>x.n===n);if(
 function bestFor(n){let m=0;for(const s of S.sessions){const e=s.ex.find(x=>x.n===n);if(e)for(const x of e.sets)m=Math.max(m,e1(x))}return m}
 function histE(n){const o=[];for(const s of S.sessions){const e=s.ex.find(x=>x.n===n);if(e&&e.sets.length)o.push({b:Math.max(...e.sets.map(e1)),dl:!!e.dl})}return o}
 function stalled(n){const h=histE(n);if(h.length<4||h.slice(0,3).some(x=>x.dl))return false;return Math.max(...h.slice(0,3).map(x=>x.b))<=Math.max(...h.slice(3).map(x=>x.b))}
-function partner(k){const e=S.active.ex[k];if(!e||!e.ss)return-1;return S.active.ex.findIndex((x,q)=>q!==k&&x.ss===e.ss)}
 function buildSets(ex){
-  if(MG[ex.n]==='cardio'){const l=lastFor(ex.n),p=l&&l.sets[0];return{n:ex.n,s:ex.s,r:ex.r,ss:ex.ss,cardio:true,sets:Array.from({length:ex.s},()=>({kg:p?fmt(p.kg):'',reps:p?String(p.reps):String(ex.r[0]),pv:p?fmt(p.kg)+' · '+p.reps+' min':'–',done:false})),tip:'Stufe und Minuten eintragen.',dl:false,warm:[]}}
+  if(MG[ex.n]==='cardio'){const l=lastFor(ex.n),p=l&&l.sets[0];return{n:ex.n,s:ex.s,r:ex.r,cardio:true,sets:Array.from({length:ex.s},()=>({kg:p?fmt(p.kg):'',reps:p?String(p.reps):String(ex.r[0]),pv:p?fmt(p.kg)+' · '+p.reps+' min':'–',done:false})),tip:'Stufe und Minuten eintragen.',dl:false,warm:[]}}
   const l0=lastFor(ex.n),ms=l0?l0.sets.filter(x=>x.t!=='D'&&x.t!=='RP'):[],l=ms.length?{sets:ms}:null,sets=[];
   const main=l?l.sets.slice(0,ex.s):[];
   const hit=l&&l.sets.length>=ex.s&&main.every(x=>x.reps>=ex.r[1]);
@@ -384,7 +381,7 @@ function buildSets(ex){
   }
   const tip=!l?'Erstes Mal: Gewicht wählen, mit dem alle Wiederholungen sauber gehen.':easy?'Ziel locker geschafft (RIR 3+): heute +'+fmt(2*S.step)+' kg.':hit?'Ziel geschafft: heute +'+fmt(S.step)+' kg.':heavy?'Letztes Mal zu schwer (unter '+ex.r[0]+' Wdh bei RIR 0): heute −'+fmt(S.step)+' kg.':dl?'3 Einheiten ohne Fortschritt: heute 10 % leichter, danach wieder steigern.':'Gleiches Gewicht, versuche mehr Wiederholungen.';
   const tk=!l?'':easy?'+'+fmt(2*S.step)+' kg':hit?'+'+fmt(S.step)+' kg':heavy?'−'+fmt(S.step)+' kg':dl?'Deload':'mehr Wdh';
-  return{n:ex.n,s:ex.s,r:ex.r,ss:ex.ss,sets,tip,tk,dl,warm:[]};
+  return{n:ex.n,s:ex.s,r:ex.r,sets,tip,tk,dl,warm:[]};
 }
 const PLATE_RX=/Hammer|Beinpresse|Hackenschmidt|Pendulum|Belt Squat|V-Squat|T-Bar|Landmine|Meadows|Seal Row/;
 function eqOf(n){if(S.eq[n])return S.eq[n];const t=MT[n];
@@ -491,15 +488,15 @@ function vTrain(){
   ${S.active?'':`<h2>Anderen Tag trainieren</h2><div class="group">${p.d.map((d,i)=>`<button class="cell" data-a="start" data-i="${i}"><span>${esc(d.name)}</span><span class="r chev">Tag ${i+1}</span></button>`).join('')}</div>`}`;
 }
 function vWorkout(){
-  const a=S.active,ssl={};let L=0;a.ex.forEach(e=>{if(e.ss&&!ssl[e.ss])ssl[e.ss]={c:String.fromCharCode(65+L++),n:0}});const ssn=a.ex.map(e=>e.ss?ssl[e.ss].c+(++ssl[e.ss].n):'');
+  const a=S.active;
   const dn=a.ex.reduce((x,e)=>x+e.sets.filter(s=>s.done).length,0),tot=a.ex.reduce((x,e)=>x+e.sets.length,0);
   return`${nav('Übersicht')}<h1>${esc(a.name)}</h1><div class="sub"><span class="clock" id="clock">0:00</span> · ${dn}/${tot} Sätze</div>
   ${banner()}
-  ${a.ex.map((e,i)=>{const pc=!e.tk?'':e.tk[0]==='+'?'up':e.tk[0]==='−'||e.tk==='Deload'?'dn':'n';return`<div class="group ex ${e.ss?'ssb':''}" id="ex${i}">
-    <div class="exh"><div style="min-width:0"><div class="exn">${e.ss?`<span class="ssl">${ssn[i]}</span> `:''}${esc(e.n)}</div>
+  ${a.ex.map((e,i)=>{const pc=!e.tk?'':e.tk[0]==='+'?'up':e.tk[0]==='−'||e.tk==='Deload'?'dn':'n';return`<div class="group ex" id="ex${i}">
+    <div class="exh"><div style="min-width:0"><div class="exn">${esc(e.n)}</div>
       <div class="mut sm">${e.s} × ${rr(e)}${e.tk?` <span class="pill ${pc}">${e.tk}</span>`:''}${S.notes[e.n]&&sw!=='n'+i?' · '+esc(S.notes[e.n]):''}</div></div>
       <button class="more" data-a="sw" data-i="m${i}" aria-label="Optionen">•••</button></div>
-    ${sw==='m'+i?`<div class="tags"><button class="tag btnt" data-a="sw" data-i="b${i}">Belegt</button><button class="tag btnt" data-a="sw" data-i="w${i}">Tauschen</button><button class="tag btnt" data-a="addset" data-i="${i}">+ Satz</button>${e.sets.length>1?`<button class="tag btnt" data-a="rmset" data-i="${i}">− Satz</button>`:''}${!e.cardio?`<button class="tag btnt" data-a="adddrop" data-i="${i}">+ Drop</button><button class="tag btnt" data-a="sw" data-i="eq${i}">Scheiben/Stufe</button>`:''}<button class="tag btnt" data-a="sw" data-i="n${i}">Notiz</button><button class="tag btnt" data-a="rmex" data-i="${i}" style="color:var(--red)">Entfernen</button></div>`:''}
+    ${sw==='m'+i?`<div class="tags">${i>0?`<button class="tag btnt" data-a="exup" data-i="${i}">↑ Hoch</button>`:''}${i<a.ex.length-1?`<button class="tag btnt" data-a="exdown" data-i="${i}">↓ Runter</button>`:''}<button class="tag btnt" data-a="sw" data-i="b${i}">Belegt</button><button class="tag btnt" data-a="sw" data-i="w${i}">Tauschen</button><button class="tag btnt" data-a="addset" data-i="${i}">+ Satz</button>${e.sets.length>1?`<button class="tag btnt" data-a="rmset" data-i="${i}">− Satz</button>`:''}${!e.cardio?`<button class="tag btnt" data-a="sw" data-i="eq${i}">Scheiben/Stufe</button>`:''}<button class="tag btnt" data-a="sw" data-i="n${i}">Notiz</button><button class="tag btnt" data-a="rmex" data-i="${i}" style="color:var(--red)">Entfernen</button></div>`:''}
     ${sw==='n'+i?`<input class="t note" placeholder="Notiz, z. B. Sitzhöhe 4" value="${esc(S.notes[e.n]||'')}" data-f="note" data-n="${esc(e.n)}">`:''}
     ${swList('w'+i,e.n,'wsw',i)}${busyList(i,e.n)}${!e.cardio?eqPanel(i,e):''}
     <div class="sh"><span>Satz</span><span>Zuletzt</span><span>${e.cardio?'Stufe':'kg'}</span><span>${e.cardio?'Min':'Wdh'}</span><span></span></div>
@@ -560,14 +557,14 @@ function vPlan(){
 function vDay(i){
   const d=S.plan.d[i];
   return`${nav('Plan')}<h1>${esc(d.name)}</h1><div class="sub">Tag ${i+1} · ${d.ex.length} Übungen</div>${banner()}
-  ${d.ex.map((e,j)=>`<div class="group ex ${e.ss?'ssb':''}">${e.ss?'<span class="tag ss">Supersatz</span>':''}
+  ${d.ex.map((e,j)=>`<div class="group ex">
     <div class="exh"><span class="exn" style="font-size:17px">${esc(e.n)}</span><span style="display:flex;gap:6px">${j>0?`<button class="mini" data-a="pup" data-i="${i}" data-j="${j}" aria-label="Nach oben">↑</button>`:''}${j<d.ex.length-1?`<button class="mini" data-a="pdown" data-i="${i}" data-j="${j}" aria-label="Nach unten">↓</button>`:''}</span></div>
     <div class="set" style="grid-template-columns:1fr 1fr 1fr;margin-top:10px">
       <input inputmode="numeric" value="${e.s}" data-f="ps" data-i="${i}" data-j="${j}" aria-label="Sätze">
       <input inputmode="numeric" value="${e.r[0]}" data-f="pa" data-i="${i}" data-j="${j}" aria-label="Wiederholungen von">
       <input inputmode="numeric" value="${e.r[1]}" data-f="pb" data-i="${i}" data-j="${j}" aria-label="Wiederholungen bis"></div>
     <div class="mut" style="font-size:12px;display:grid;grid-template-columns:1fr 1fr 1fr;text-align:center"><span>Sätze</span><span>Wdh von</span><span>Wdh bis</span></div>
-    <div class="acts"><button class="lnk" data-a="sw" data-i="p${i}_${j}">Tauschen</button>${e.ss?`<button class="lnk" data-a="ssoff" data-i="${i}" data-j="${j}">Supersatz lösen</button>`:j<d.ex.length-1&&!d.ex[j+1].ss?`<button class="lnk" data-a="sson" data-i="${i}" data-j="${j}">Mit nächster koppeln</button>`:''}<button class="lnk red" data-a="pdel" data-i="${i}" data-j="${j}">Entfernen</button></div>
+    <div class="acts"><button class="lnk" data-a="sw" data-i="p${i}_${j}">Tauschen</button><button class="lnk red" data-a="pdel" data-i="${i}" data-j="${j}">Entfernen</button></div>
     ${swList('p'+i+'_'+j,e.n,'psw',i,j)}</div>`).join('')}
   <button class="btn gray" data-a="pickp" data-i="${i}">+ Übung hinzufügen</button>
   <button class="btn" data-a="start" data-i="${i}">Diesen Tag trainieren</button>`;
@@ -685,12 +682,11 @@ document.addEventListener('click',async ev=>{
   else if(a==='move'){const t=moveTarget();if(t){const tk=dkey(new Date()),xk=dkey(t);S.mv.push({f:tk,t:xk,pf:S.ov[tk]||null,pt:S.ov[xk]||null});S.ov[tk]='r';S.ov[xk]='t';save()}}
   else if(a==='unmove'){const tk=dkey(new Date()),m=S.mv.find(x=>x.f===tk);if(m){for(const[k2,v]of[[m.f,m.pf],[m.t,m.pt]]){if(v)S.ov[k2]=v;else delete S.ov[k2]}S.mv=S.mv.filter(x=>x!==m);save()}}
   else if(a==='ck'){const s=S.active.ex[k].sets[j];s.done=!s.done;
-    if(s.done){const p=partner(k),ps=p>=0?S.active.ex[p].sets[j]:null;
-      if(ps&&!ps.done){stopRest();save();render();const el=document.getElementById('ex'+p);try{el.scrollIntoView({behavior:'smooth',block:'center'})}catch(e){}return}
-      if(s.t==='D')stopRest();else startRest(s.t==='RP'?15:S.rest)}else{stopRest();setRir(s,null)}save()}
-  else if(a==='stype'){const s=S.active.ex[k].sets[j],o=['N','D','RP','F'];s.t=o[(o.indexOf(s.t||'N')+1)%4];delete s.tAuto;save()}
+    if(s.done){
+      startRest(s.t==='RP'?15:S.rest)}else{stopRest();setRir(s,null)}save()}
+  else if(a==='stype'){const s=S.active.ex[k].sets[j],o=['N','RP','F'];s.t=o[(o.indexOf(s.t||'N')+1)%3];delete s.tAuto;save()}
   else if(a==='rir'){const s=S.active.ex[k].sets[j];setRir(s,n==='x'?null:+n);save()}
-  else if(a==='adddrop'){const e=S.active.ex[k],l=e.sets[e.sets.length-1];e.sets.push({kg:l?fmt(rnd(num(l.kg)*.8)):'',reps:l?l.reps:'',pv:'–',t:'D',rir:null,done:false});save()}
+  else if(a==='exup'||a==='exdown'){const l=S.active.ex,t=a==='exup'?k-1:k+1;if(t>=0&&t<l.length){[l[k],l[t]]=[l[t],l[k]];sw='m'+t;save()}}
   else if(a==='eqm'){const nm=S.active.ex[+n].n;S.eq[nm]=Object.assign({},eqOf(nm),{m:i});if(i==='p'&&S.eq[nm].bar==null)S.eq[nm].bar=0;if(i==='s'&&S.eq[nm].step==null){S.eq[nm].start=5;S.eq[nm].step=5}save()}
   else if(a==='rirt'){S.rirOn=i==='an';save()}
   else if(a==='plt'){const v=num(i);S.plates=S.plates.includes(v)?S.plates.filter(x=>x!==v):[...S.plates,v];save()}
@@ -699,15 +695,13 @@ document.addEventListener('click',async ev=>{
   else if(a==='addset'){const e=S.active.ex[k],l=e.sets[e.sets.length-1];e.sets.push({kg:l?l.kg:'',reps:l?l.reps:'',pv:'–',done:false});save()}
   else if(a==='rmset'){S.active.ex[k].sets.pop();save()}
   else if(a==='rmex'){S.active.ex.splice(k,1);save()}
-  else if(a==='later'){const p=partner(k),ids=[k].concat(p>=0?[p]:[]).sort((x,y)=>x-y),mv=ids.map(x=>S.active.ex[x]);S.active.ex=S.active.ex.filter((_,x)=>!ids.includes(x)).concat(mv);msg=mv.map(e=>e.n).join(' + ')+' kommt am Ende dran.';sw=null;save()}
+  else if(a==='later'){const mv=S.active.ex.splice(k,1);S.active.ex.push(...mv);msg=mv[0].n+' kommt am Ende dran.';sw=null;save()}
   else if(a==='delses'){const id=+i;S.sessions=S.sessions.filter(s=>s.id!==id);if(!S.del.includes(id))S.del.push(id);pendingSes.delete(id);pendingDel.add(id);save()}
   else if(a==='pdel'){S.plan.d[k].ex.splice(j,1);save()}
   else if(a==='pup'||a==='pdown'){const l=S.plan.d[k].ex,t=a==='pup'?j-1:j+1;if(t>=0&&t<l.length){[l[j],l[t]]=[l[t],l[j]];save()}}
   else if(a==='sw'){sw=sw===i?null:i}
-  else if(a==='wsw'){const e=S.active.ex[k];S.active.ex[k]=buildSets({n,s:e.s,r:e.r,ss:e.ss});sw=null;save()}
+  else if(a==='wsw'){const e=S.active.ex[k];S.active.ex[k]=buildSets({n,s:e.s,r:e.r});sw=null;save()}
   else if(a==='psw'){S.plan.d[k].ex[j].n=n;sw=null;save()}
-  else if(a==='sson'){const id='s'+Date.now(),d=S.plan.d[k];d.ex[j].ss=id;d.ex[j+1].ss=id;save()}
-  else if(a==='ssoff'){const id=S.plan.d[k].ex[j].ss;S.plan.d[k].ex.forEach(x=>{if(x.ss===id)delete x.ss});save()}
   else if(a==='gtog'){S.no=has(n)?[...S.no,n]:S.no.filter(x=>x!==n);const r=fitPlan(S.plan);S.plan=r.plan;msg=r.c?r.c+' Übung(en) im Plan automatisch ersetzt.':'';save()}
   else if(a==='rst'){S.rest=k;save()}
   else if(a==='stp'){S.step=num(i);save()}
@@ -726,7 +720,7 @@ document.addEventListener('input',ev=>{
   const t=ev.target,f=t.dataset.f;if(!f)return;const i=+t.dataset.i,j=+t.dataset.j;
   if(f==='q'){$('#picklist').innerHTML=pickHtml(t.value);return}
   if(f==='kg'||f==='reps'){const e=S.active.ex[i],st=e.sets[j];st[f]=t.value;
-    const fl=f+'M';if(j>0)st[fl]=true;else e.sets.forEach((x,q)=>{if(q===0||x.done||x.t==='D'||x[fl])return;x[f]=t.value;const el=document.querySelector('input[data-f="'+f+'"][data-i="'+i+'"][data-j="'+q+'"]');if(el)el.value=t.value});
+    const fl=f+'M';if(j>0)st[fl]=true;else e.sets.forEach((x,q)=>{if(q===0||x.done||x[fl])return;x[f]=t.value;const el=document.querySelector('input[data-f="'+f+'"][data-i="'+i+'"][data-j="'+q+'"]');if(el)el.value=t.value});
     save();const c=$('#calc'+i);if(c)c.textContent=calcTxt(e)}
   else if(f==='eqbar'||f==='eqstart'||f==='eqstep'){const nm=S.active.ex[i].n;S.eq[nm]=Object.assign({},eqOf(nm));S.eq[nm][f.slice(2)]=num(t.value);save();const c=$('#calc'+i);if(c)c.textContent=calcTxt(S.active.ex[i])}
   else if(f==='wkg'||f==='wreps'){S.active.ex[i].warm[j][f==='wkg'?'kg':'reps']=t.value;save()}
