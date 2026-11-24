@@ -254,8 +254,14 @@ const PRI={M:0,K:1,SM:2,KH:3,LH:3,SZ:3,KB:4,KG:4,B:5,S:4,C:6};
 function alts(n){const g=MG[n];if(!g)return[];const l=[g,...REL[g]].flatMap(x=>MACH[x].map(y=>[y,x===g?0:1])).filter(([x])=>x!==n&&has(x));l.sort((p,q)=>p[1]-q[1]||(PRI[MT[p[0]]]??9)-(PRI[MT[q[0]]]??9));return l.map(x=>x[0])}
 function fitDay(day){const used=[],out=[];for(const e of day.ex){let n=e.n;if(!has(n)){const a=alts(n).filter(x=>!used.includes(x));n=a[0]||n}used.push(n);out.push({...e,n})}return{...day,ex:out}}
 function fitPlan(p){let c=0;const d=p.d.map(day=>{const f=fitDay(day);f.ex.forEach((e,i)=>{if(e.n!==day.ex[i].n)c++});return f});return{plan:{...p,d},c}}
+function GY(){const id=S.gymId;if(!id||id==='main'||!S.gyms)return S;return S.gyms.find(x=>x.id===id)||S}
+function gymSpec(n){return['M','K','S','SM'].includes(MT[n])||PLATE_RX.test(n)}
+function EM(n){if(!gymSpec(n))return S.e1;const g=GY();if(!g.e1)g.e1={};return g.e1}
+const gymId=()=>GY()===S?'main':S.gymId;
+const gymName=g=>(g===S?S.gymName:g.name)||'Hauptgym';
+const sameG=(s,n)=>!gymSpec(n)||(s.g||'main')===gymId();
 function gymDef(){return{K:{a:2.5,b:100,s:2.5,z:[]},M:{a:5,b:120,s:5,z:[]},KH:{a:2,b:40,s:2},bars:{LH:20,SZ:10,SM:15}}}
-function migrate(){if(!S.theme)S.theme='dark';if(!S.autoBk)S.autoBk='w';if(!S.eq)S.eq={};if(!S.plates)S.plates=[25,20,15,10,5,2.5,1.25];if(S.rirOn===undefined)S.rirOn=true;if(!S.no)S.no=[];if(!S.noT)S.noT=[];if(!S.custom)S.custom=[];rebuildLib();if(!S.wd||!S.wd.length)S.wd=[0,1,2,3,4,5];if(!S.ov)S.ov={};if(!S.mv)S.mv=[];if(S.warm===undefined)S.warm=true;if(!S.gym)S.gym=gymDef();['K','M'].forEach(k=>{if(!Array.isArray(S.gym[k].z))S.gym[k].z=[]});if(!S.e1)S.e1={};if(!S.meso)S.meso={on:true,start:null};if(S.fat==null)S.fat=0;
+function migrate(){if(!S.theme)S.theme='dark';if(!S.autoBk)S.autoBk='w';if(!S.eq)S.eq={};if(!S.plates)S.plates=[25,20,15,10,5,2.5,1.25];if(S.rirOn===undefined)S.rirOn=true;if(!S.no)S.no=[];if(!S.noT)S.noT=[];if(!S.custom)S.custom=[];rebuildLib();if(!S.wd||!S.wd.length)S.wd=[0,1,2,3,4,5];if(!S.ov)S.ov={};if(!S.mv)S.mv=[];if(S.warm===undefined)S.warm=true;if(!S.gym)S.gym=gymDef();['K','M'].forEach(k=>{if(!Array.isArray(S.gym[k].z))S.gym[k].z=[]});if(!S.e1)S.e1={};if(!S.meso)S.meso={on:true,start:null};if(S.fat==null)S.fat=0;if(!Array.isArray(S.gyms))S.gyms=[];S.gyms.forEach(g=>{if(!g.gym)g.gym=gymDef();['K','M'].forEach(k=>{if(!Array.isArray(g.gym[k].z))g.gym[k].z=[]});if(!g.plates)g.plates=[25,20,15,10,5,2.5,1.25];if(!g.eq)g.eq={};if(!g.e1)g.e1={}});if(S.gymId&&S.gymId!=='main'&&!S.gyms.some(g=>g.id===S.gymId))S.gymId='main';
   if(S.plan&&(S.pv||1)<2){const p=PLANS.find(x=>x.id===S.planId);if(p)S.plan=fitPlan({name:p.name,d:clone(p.d)}).plan}
   if(S.plan)S.plan.d.forEach(day=>day.ex.forEach(e=>{delete e.ss}));
   if(S.active)S.active.ex.forEach(e=>{delete e.ss});
@@ -412,9 +418,9 @@ const dayName=d=>{const t=noon(new Date());t.setDate(t.getDate()+1);return dkey(
 /* ---------- Training-Logik ---------- */
 const e1=x=>x.kg*(1+x.reps/30);
 const rnd=k=>Math.max(0,Math.round(k/S.step)*S.step);
-function lastFor(n){for(const s of S.sessions){const e=s.ex.find(x=>x.n===n);if(e&&e.sets.length)return e}return null}
-function bestFor(n){let m=0;for(const s of S.sessions){const e=s.ex.find(x=>x.n===n);if(e)for(const x of e.sets)m=Math.max(m,e1(x))}return m}
-function histE(n){const o=[];for(const s of S.sessions){const e=s.ex.find(x=>x.n===n);if(e&&e.sets.length)o.push({b:Math.max(...e.sets.map(e1)),dl:!!e.dl})}return o}
+function lastFor(n){for(const s of S.sessions){if(!sameG(s,n))continue;const e=s.ex.find(x=>x.n===n);if(e&&e.sets.length)return e}return null}
+function bestFor(n){let m=0;for(const s of S.sessions){if(!sameG(s,n))continue;const e=s.ex.find(x=>x.n===n);if(e)for(const x of e.sets)m=Math.max(m,e1(x))}return m}
+function histE(n){const o=[];for(const s of S.sessions){if(!sameG(s,n))continue;const e=s.ex.find(x=>x.n===n);if(e&&e.sets.length)o.push({b:Math.max(...e.sets.map(e1)),dl:!!e.dl})}return o}
 function stalled(n){const h=histE(n);if(h.length<4||h.slice(0,3).some(x=>x.dl))return false;return Math.max(...h.slice(0,3).map(x=>x.b))<=Math.max(...h.slice(3).map(x=>x.b))}
 function oldSets(ex){
   if(MG[ex.n]==='cardio'){const l=lastFor(ex.n),p=l&&l.sets[0];return{n:ex.n,s:ex.s,r:ex.r,cardio:true,sets:Array.from({length:ex.s},()=>({kg:p?fmt(p.kg):'',reps:p?String(p.reps):String(ex.r[0]),pv:p?fmt(p.kg)+' · '+p.reps+' min':'–',done:false})),tip:'Stufe und Minuten eintragen.',dl:false,warm:[]}}
@@ -437,7 +443,7 @@ function oldSets(ex){
   return{n:ex.n,s:ex.s,r:ex.r,sets,tip,tk,dl,warm:[]};
 }
 const PLATE_RX=/Hammer|Beinpresse|Hackenschmidt|Pendulum|Belt Squat|V-Squat|T-Bar|Landmine|Meadows|Seal Row/;
-function eqOf(n){if(S.eq[n])return S.eq[n];const t=MT[n],g=S.gym||gymDef();
+function eqOf(n){if(GY().eq[n])return GY().eq[n];const t=MT[n],g=GY().gym||gymDef();
   if(t==='LH'||t==='SZ'||t==='SM')return{m:'p',bar:g.bars[t],d:1};
   if(PLATE_RX.test(n))return{m:'p',bar:0,d:1};const k=t==='K'||t==='KH'||t==='M'?t:null;if(k)return{m:'s',start:g[k].a,step:g[k].s,max:g[k].b,z:(g[k].z||[]).slice(),d:1};return{m:'o'}}
 function eqCopy(n){const o=Object.assign({},eqOf(n));delete o.d;return o}
@@ -448,7 +454,7 @@ function calcTxt(e){if(!e||e.cardio)return'';const c=eqOf(e.n);if(c.m==='o')retu
     if(zs.length>1){const real=snapKg(e.n,kg);for(const z of zs){const lv=(real-z.v-a0)/stp;if(lv>-1e-6&&Math.abs(lv-Math.round(lv))<1e-6)return 'Stufe '+(Math.round(lv)+1)+(z.p.length?' + Zusatz '+z.p.map(fmt).join(' + '):'')+(Math.abs(real-kg)>.01?' = '+fmt(real)+' kg':'')}}
     const lv=Math.max(1,Math.round((kg-a0)/stp)+1),real=a0+(lv-1)*stp;return 'Stufe '+lv+(Math.abs(real-kg)>.01?' = '+fmt(real)+' kg':'')}
   let side=(kg-(c.bar||0))/2;if(side<0)return 'Unter Stangengewicht';if(side===0)return 'Nur Stange';
-  const used=[];for(const p of S.plates.slice().sort((a,b)=>b-a)){while(side>=p-1e-9){used.push(p);side-=p}}
+  const used=[];for(const p of GY().plates.slice().sort((a,b)=>b-a)){while(side>=p-1e-9){used.push(p);side-=p}}
   const real=(c.bar||0)+2*used.reduce((a,b)=>a+b,0);
   return 'Pro Seite '+(used.length?used.map(fmt).join(' + '):'–')+(Math.abs(real-kg)>.01?' = '+fmt(real)+' kg':'')}
 function eqPanel(i,e){if(sw!=='eq'+i)return'';const c=eqOf(e.n);
@@ -461,9 +467,9 @@ function eqPanel(i,e){if(sw!=='eq'+i)return'';const c=eqOf(e.n);
 const AV={};
 function zSums(z){const a=(z||[]).filter(x=>x>0).slice(0,4),o=[{v:0,p:[]}];for(const x of a){const n=o.length;for(let q=0;q<n;q++)o.push({v:Math.round((o[q].v+x)*100)/100,p:o[q].p.concat([x])})}o.sort((x,y)=>x.v-y.v||x.p.length-y.p.length);return o.filter((x,q)=>!q||Math.abs(x.v-o[q-1].v)>1e-9)}
 const parseZ=t=>String(t||'').split(/[\s;+\/]+/).map(num).filter(x=>x>0).slice(0,4);
-function avail(n){const c=eqOf(n);if(c.m==='o')return null;const key=JSON.stringify(c)+'|'+(c.m==='p'?S.plates.join(','):'');if(AV[n]&&AV[n].k===key)return AV[n].l;const l=[];
+function avail(n){const c=eqOf(n);if(c.m==='o')return null;const key=JSON.stringify(c)+'|'+(c.m==='p'?GY().plates.join(','):'');if(AV[n]&&AV[n].k===key)return AV[n].l;const l=[];
   if(c.m==='s'){const st=Math.max(.25,c.step||5),a=Math.max(0,c.start||0),b=Math.max(a,c.max==null?300:c.max);const zs=zSums(c.z);for(let q=0;a+q*st<=b+1e-9&&q<2000;q++)for(const z of zs)l.push(Math.round((a+q*st+z.v)*100)/100);l.sort((x,y)=>x-y);for(let q=l.length-1;q>0;q--)if(Math.abs(l[q]-l[q-1])<1e-9)l.splice(q,1)}
-  else{const u=.25,M=600,r=new Uint8Array(M+1);r[0]=1;const ps=S.plates.map(x=>Math.round(x/u)).filter(x=>x>0);for(let q=1;q<=M;q++)for(const x of ps)if(q>=x&&r[q-x]){r[q]=1;break}const bar=c.bar||0;for(let q=0;q<=M;q++)if(r[q])l.push(Math.round((bar+2*q*u)*100)/100)}
+  else{const u=.25,M=600,r=new Uint8Array(M+1);r[0]=1;const ps=GY().plates.map(x=>Math.round(x/u)).filter(x=>x>0);for(let q=1;q<=M;q++)for(const x of ps)if(q>=x&&r[q-x]){r[q]=1;break}const bar=c.bar||0;for(let q=0;q<=M;q++)if(r[q])l.push(Math.round((bar+2*q*u)*100)/100)}
   AV[n]={k:key,l};return l}
 function snapKg(n,kg,mode){const l=avail(n);if(!l||!l.length){const st=S.step||2.5;return Math.max(0,(mode==='down'?Math.floor(kg/st+1e-9):mode==='up'?Math.ceil(kg/st-1e-9):Math.round(kg/st))*st)}
   if(mode==='down'){let v=l[0];for(const x of l)if(x<=kg+1e-9)v=x;return v}
@@ -475,6 +481,10 @@ const epl=(kg,reps,rir)=>kg*(1+(reps+(rir||0))/30);
 const r1=v=>Math.round(v*10)/10;
 const kgAt=(n,v,reps,rir)=>snapKg(n,v/(1+(reps+rir)/30));
 const tReps=r=>Math.round((r[0]+r[1])/2);
+const repsAt=(v,kg,rir)=>Math.round(30*(v/kg-1)-rir);
+function planSet(n,v,T,rir,r){const ideal=v/(1+(T+rir)/30);let best=null;
+  for(const kg of [snapKg(n,ideal,'down'),snapKg(n,ideal,'up')]){if(kg<=0)continue;const rp=repsAt(v,kg,rir),inR=rp>=r[0]&&rp<=r[1]+2,sc=Math.abs(rp-T)+(inR?0:10)+(rp<1?100:0);if(!best||sc<best.sc)best={kg,reps:Math.max(1,Math.min(r[1]+2,rp)),sc}}
+  return best||{kg:snapKg(n,ideal),reps:T}}
 function nextMon(){const d=noon(new Date()),k=(7-((d.getDay()+6)%7))%7||7;d.setDate(d.getDate()+k);return d}
 function mesoWeek(d){const m=S.meso;if(!m||!m.on)return null;if(!m.start)m.start=dkey(nextMon());
   const diff=Math.round((noon(d||new Date())-new Date(m.start+'T12:00'))/864e5);
@@ -486,37 +496,37 @@ const FORM=['','Schlecht','Eher schlecht','Normal','Gut','Top'];
 function formTxt(f){return f<=1?'Heute ruhiger: 1 Satz weniger bei Übungen ab 3 Sätzen, 2 Wdh mehr im Tank. Krafttests werden verschoben, weil sie heute zu niedrig ausfallen würden.':f===2?'Etwas ruhiger: 1 Satz weniger bei Übungen ab 4 Sätzen, 1 Wdh mehr im Tank.':f===3?'Training wie geplant.':'Training wie geplant. Läuft es besser als erwartet, schlägt die App im Training mehr Gewicht vor.'}
 function buildSets(ex,f){
   if(MG[ex.n]==='cardio')return oldSets(ex);
-  f=f||(S.active&&S.active.form)||3;const fa=formAdj(f),mw=mesoWeek(),E1=S.e1[ex.n],s0=ex.s0||ex.s,T=tReps(ex.r);
+  f=f||(S.active&&S.active.form)||3;const fa=formAdj(f),mw=mesoWeek(),E1=EM(ex.n)[ex.n],s0=ex.s0||ex.s,T=tReps(ex.r);
   let n=s0;if(mw&&mw.deload)n=Math.max(1,Math.ceil(s0/2));if(fa.ds&&n>=fa.min)n-=fa.ds;
   if(!E1&&mw&&!fa.noT){const o=oldSets(Object.assign({},ex,{s:n}));o.sets.forEach((x,q)=>{x.reps=q?String(T):'';if(q)x.kg='';x.tr=mw.rir+fa.r});o.sets[0].t='T';
     return Object.assign(o,{s:n,s0,test:true,tk:'Krafttest',rirT:mw.rir+fa.r,tip:'Satz 1 ist dein Krafttest: bis zum Muskelversagen, saubere Technik. Nimm ein Gewicht, das du etwa '+ex.r[0]+' bis '+(ex.r[1]+2)+' Mal schaffst. Danach rechnet die App die übrigen Sätze aus.'})}
   if(E1&&mw){const l0=lastFor(ex.n),R=mw.rir+fa.r,sets=[];
     const pv=q=>{const p=l0&&(l0.sets[q]||l0.sets[l0.sets.length-1]);return p?fmt(p.kg)+'×'+p.reps+(p.rir!=null?' @'+p.rir:''):'–'};
-    for(let q=0;q<n;q++){const rr=mw.last0&&q===n-1&&!fa.r?0:Math.min(5,R);sets.push({kg:fmt(mw.deload?snapKg(ex.n,E1.v/(1+(T+3)/30)*.9,'down'):kgAt(ex.n,E1.v,T,rr)),reps:String(T),pv:pv(q),t:rr===0?'F':'N',tAuto:rr===0?true:undefined,tr:rr,rir:null,done:false})}
+    for(let q=0;q<n;q++){const rr=mw.last0&&q===n-1&&!fa.r?0:Math.min(5,R);const ps=mw.deload?{kg:snapKg(ex.n,E1.v/(1+(T+3)/30)*.9,'down'),reps:T}:planSet(ex.n,E1.v,T,rr,ex.r);sets.push({kg:fmt(ps.kg),reps:String(ps.reps),pv:pv(q),t:rr===0?'F':'N',tAuto:rr===0?true:undefined,tr:rr,rir:null,done:false})}
     const lm=l0?l0.sets.filter(x=>x.t!=='D'&&x.t!=='RP').map(x=>x.kg):[],lt=lm.length?Math.max(...lm):0,dlt=lt?Math.round((num(sets[0].kg)-lt)*100)/100:0;
     const tk=mw.deload?'Entlastung':dlt>0?'+'+fmt(dlt)+' kg':dlt<0?'−'+fmt(-dlt)+' kg':'gleich';
-    return{n:ex.n,s:n,s0,r:ex.r,sets,tk,rirT:R,tip:mw.label+': '+n+' × '+T+' mit '+sets[0].kg+' kg.',dl:false,warm:[]}}
+    return{n:ex.n,s:n,s0,r:ex.r,sets,tk,rirT:R,tip:mw.label+': '+n+' × '+sets[0].reps+' mit '+sets[0].kg+' kg.',dl:false,warm:[]}}
   const o=oldSets(Object.assign({},ex,{s:n}));o.s0=s0;if(fa.r)o.rirT=2+fa.r;return o}
 function doTest(k,j){const e=S.active.ex[k],s=e.sets[j],kg=num(s.kg),reps=num(s.reps),v=epl(kg,reps,0);
-  e.prevE1=S.e1[e.n]?clone(S.e1[e.n]):null;e.tested=true;S.e1[e.n]={v:r1(v),d:dkey(new Date()),h:[r1(v)]};
-  const mw=mesoWeek(),R=(mw?mw.rir:2)+formAdj(S.active.form||3).r,T=tReps(e.r),nk=kgAt(e.n,v,T,R);
+  e.prevE1=EM(e.n)[e.n]?clone(EM(e.n)[e.n]):null;e.tested=true;EM(e.n)[e.n]={v:r1(v),d:dkey(new Date()),h:[r1(v)]};
+  const mw=mesoWeek(),R=(mw?mw.rir:2)+formAdj(S.active.form||3).r,T0=tReps(e.r),ps=planSet(e.n,v,T0,R,e.r),nk=ps.kg,T=ps.reps;
   e.sets.forEach((x,q)=>{if(q!==j&&!x.done){x.kg=fmt(nk);x.reps=String(T);x.tr=R}});e.rirT=R;e.tk='Getestet';e.sug=null;
   e.hint='Krafttest: '+fmt(kg)+' kg × '+reps+' → Maximalkraft ca. '+fmt(Math.round(v*2)/2)+' kg. Nächste Sätze: '+fmt(nk)+' kg × '+T+' ('+R+' Wdh im Tank).'+(reps>15?' Das Gewicht war eher leicht. Die Schätzung wird mit den nächsten Trainings genauer.':reps<3?' Sehr schwer gewählt. Die Schätzung wird mit den nächsten Trainings genauer.':'')}
-function undoTest(k){const e=S.active.ex[k];if(!e.tested)return;if(e.prevE1)S.e1[e.n]=e.prevE1;else delete S.e1[e.n];e.tested=false;e.hint=null;e.tk='Krafttest'}
+function undoTest(k){const e=S.active.ex[k];if(!e.tested)return;if(e.prevE1)EM(e.n)[e.n]=e.prevE1;else delete EM(e.n)[e.n];e.tested=false;e.hint=null;e.tk='Krafttest'}
 function liveSug(k,j){const e=S.active.ex[k];if(!e||e.cardio)return;e.sug=null;const s=e.sets[j],kg=num(s.kg),reps=num(s.reps);if(kg<=0||reps<=0||s.t==='D'||s.t==='RP'||s.t==='T')return;
   const nx=e.sets.findIndex((x,q)=>q>j&&!x.done);if(nx<0)return;const n2=e.sets[nx];
   const tr=n2.tr!=null?n2.tr:(e.rirT!=null?e.rirT:2),st=s.tr!=null?s.tr:tr,T=num(n2.reps)||tReps(e.r);
   const rir=s.rir!=null?Math.min(s.rir,4):(reps<e.r[0]?0:st);
   const low=reps<e.r[0],off=low||reps>e.r[1]+1||(s.rir!=null&&Math.abs(rir-st)>=2);if(!off)return;
-  const sug=kgAt(e.n,epl(kg,reps,rir),T,tr),cur=num(n2.kg);if(Math.abs(sug-cur)<.01||(low&&sug>=cur))return;
+  const pz=planSet(e.n,epl(kg,reps,rir),T,tr,e.r),sug=pz.kg,cur=num(n2.kg);if((Math.abs(sug-cur)<.01&&pz.reps===T)||(low&&sug>cur))return;
   const tank=s.rir!=null?', '+(s.rir>=4?'4+':s.rir)+' im Tank':'';
-  e.sug={j:nx,kg:sug,t:(low?'Nur '+reps+' Wdh, Ziel '+rr(e)+'.':sug>cur?'Da ist noch was drin ('+reps+' Wdh'+tank+').':'Schwerer als geplant ('+reps+' Wdh'+tank+').')+' Nächster Satz '+fmt(sug)+' kg?'}}
+  e.sug={j:nx,kg:sug,reps:pz.reps,t:(low?'Nur '+reps+' Wdh, Ziel '+rr(e)+'.':sug>cur?'Da ist noch was drin ('+reps+' Wdh'+tank+').':'Schwerer als geplant ('+reps+' Wdh'+tank+').')+' Nächster Satz '+fmt(sug)+' kg × '+pz.reps+'?'}}
 function reform(){const a=S.active;a.ex=a.ex.map(e=>e.cardio||e.sets.some(x=>x.done)?e:Object.assign(buildSets({n:e.n,s:e.s0||e.s,r:e.r},a.form||3)));a.ex.forEach(e=>e.warm=e.warm&&e.warm.some(x=>x.done)?e.warm:[]);addWarm()}
 function learn(a){const mw=mesoWeek(),day=dkey(new Date());let drops=0,cnt=0;
   for(const e of a.ex){if(e.cardio)continue;const ss=e.sets.filter(x=>x.done&&num(x.reps)>0&&num(x.kg)>0&&x.t!=='D'&&x.t!=='RP');if(!ss.length)continue;
     const known=ss.filter(x=>x.rir!=null),est=x=>epl(num(x.kg),num(x.reps),x.rir!=null?Math.min(x.rir,4):(x.tr!=null?x.tr:(e.rirT!=null?e.rirT:2)));
-    const old=S.e1[e.n];
-    if(!old){if(known.length){const b=Math.max(...known.map(est));S.e1[e.n]={v:r1(b),d:day,h:[r1(b)]}}continue}
+    const old=EM(e.n)[e.n];
+    if(!old){if(known.length){const b=Math.max(...known.map(est));EM(e.n)[e.n]={v:r1(b),d:day,h:[r1(b)]}}continue}
     const best=Math.max(...ss.map(est));old.h=(old.h||[]).concat([r1(best)]).slice(-8);old.d=day;
     if(e.tested){old.v=r1(Math.max(old.v,best));continue}
     cnt++;if(best<old.v*.95)drops++;
@@ -524,15 +534,21 @@ function learn(a){const mw=mesoWeek(),day=dkey(new Date());let drops=0,cnt=0;
   if(mw&&!mw.test&&!mw.deload&&cnt>=2)S.fat=drops*2>=cnt?(S.fat||0)+1:0}
 function calcLine(e){const j=e.sets.findIndex(x=>!x.done);if(j<0)return'';const kg=num(e.sets[j].kg),c=calcTxt(e);return'Satz '+(j+1)+' · '+(kg>0?fmt(kg)+' kg':'Gewicht wählen')+(c?' · '+c:'')}
 function eqSum(c){return c.m==='s'?fmt(c.start||0)+'–'+fmt(c.max==null?300:c.max)+' kg, Schritt '+fmt(c.step||5)+(c.z&&c.z.length?', Zusatz '+c.z.map(fmt).join(' + '):''):c.m==='p'?'Scheiben, Stange '+fmt(c.bar||0)+' kg':'Aus'}
-function rng(k,lab){const g=S.gym[k];return`<div class="cell" style="display:block"><div style="margin-bottom:8px">${lab}</div><div class="set" style="grid-template-columns:1fr 1fr 1fr;margin:0">${['a','b','s'].map(x=>`<input inputmode="decimal" value="${fmt(g[x])}" data-f="gy" data-n="${k}" data-i="${x}">`).join('')}</div><div class="mut" style="font-size:12px;display:grid;grid-template-columns:1fr 1fr 1fr;text-align:center;margin-top:4px"><span>von kg</span><span>bis kg</span><span>Schritt kg</span></div>${k==='KH'?'':`<div class="mut sm" style="margin:12px 0 6px">Zusatzgewichte zum Aufstecken (kg), mehrere mit Leerzeichen</div><input class="t" inputmode="decimal" placeholder="z. B. 1,25 2,5" value="${esc((g.z||[]).map(fmt).join(' '))}" data-f="gz" data-n="${k}">`}</div>`}
-function vGew(){const ov=Object.keys(S.eq);
-  return`${nav('Plan')}<h1>Gewichte im Studio</h1><div class="sub">Einmal eintragen. Die App schlägt dann nur Gewichte vor, die es an deinen Geräten wirklich gibt.</div>${banner()}
-  <h2>Stufen</h2><div class="group">${rng('K','Kabelturm')}${rng('M','Maschinen mit Steckgewicht')}${rng('KH','Kurzhanteln (pro Hantel)')}</div>
-  <h2>Scheiben</h2><div class="group ex"><div class="tags" style="margin-top:0">${[25,20,15,10,5,2.5,1.25,0.5].map(v=>`<button class="tag btnt ${S.plates.includes(v)?'sel':''}" data-a="plt" data-i="${v}">${fmt(v)} kg</button>`).join('')}</div></div>
-  <h2>Stangen und Schlitten</h2><div class="group">${[['LH','Langhantel'],['SZ','SZ-Stange'],['SM','Smith-Maschine']].map(([k,l])=>`<div class="cell"><span>${l}</span><input inputmode="decimal" style="max-width:96px" value="${fmt(S.gym.bars[k])}" data-f="gb" data-n="${k}"></div>`).join('')}</div>
-  <h2>Eigene Werte pro Übung</h2><div class="group">${ov.length?ov.map(n=>`<div class="cell"><span>${esc(n)}<br><span class="mut sm">${eqSum(S.eq[n])}</span></span><button class="tag btnt" data-a="eqreset" data-n="${esc(n)}">Standard</button></div>`).join(''):'<div class="cell mut">Noch keine. Im Training Übung gedrückt halten → Gewichte.</div>'}</div>`}
-function vKraft(){const mw=mesoWeek(),l=Object.entries(S.e1).sort((x,y)=>x[0].localeCompare(y[0]));
-  return`${nav('Plan')}<h1>Kraft und Block</h1>${banner()}
+function rng(k,lab){const g=GY().gym[k];return`<div class="cell" style="display:block"><div style="margin-bottom:8px">${lab}</div><div class="set" style="grid-template-columns:1fr 1fr 1fr;margin:0">${['a','b','s'].map(x=>`<input inputmode="decimal" value="${fmt(g[x])}" data-f="gy" data-n="${k}" data-i="${x}">`).join('')}</div><div class="mut" style="font-size:12px;display:grid;grid-template-columns:1fr 1fr 1fr;text-align:center;margin-top:4px"><span>von kg</span><span>bis kg</span><span>Schritt kg</span></div>${k==='KH'?'':`<div class="mut sm" style="margin:12px 0 6px">Zusatzgewichte zum Aufstecken (kg), mehrere mit Leerzeichen</div><input class="t" inputmode="decimal" placeholder="z. B. 1,25 2,5" value="${esc((g.z||[]).map(fmt).join(' '))}" data-f="gz" data-n="${k}">`}</div>`}
+function vGew(){const ov=Object.keys(GY().eq),cur=gymId(),all=[S,...S.gyms];
+  return`${nav('Plan')}<h1>Studios und Gewichte</h1><div class="sub">Einmal eintragen. Die App schlägt dann nur Gewichte vor, die es an deinen Geräten wirklich gibt.</div>${banner()}
+  <h2>Studio</h2><div class="group">${all.map(g=>{const id=g===S?'main':g.id;return`<button class="cell" data-a="gymset" data-i="${id}"><span>${esc(gymName(g))}${id==='main'?' <span class="mut sm">Standard</span>':''}</span><span class="r" style="color:var(--blue)">${id===cur?'Aktiv':''}</span></button>`}).join('')}
+    <button class="cell" data-a="gymadd"><span style="color:var(--blue)">Weiteres Studio hinzufügen</span><span class="r chev"></span></button></div>
+  <div class="mut sm" style="margin:8px 16px">Maschinen und Kabel haben pro Studio eigene Gewichte, eigene Kraftwerte und einen eigenen Verlauf. Kurz- und Langhanteln zählen überall gleich. Dein Plan bleibt derselbe.</div>
+  <h2>Name</h2><div class="group ex"><input class="t" value="${esc(gymName(GY()))}" data-f="gyname" aria-label="Name des Studios">
+  ${cur!=='main'?(conf==='gymdel'?`<div class="row2"><button class="btn red" data-a="gymdel">Wirklich löschen</button><button class="btn gray" data-a="noconf">Abbrechen</button></div>`:`<button class="btn red" data-a="conf" data-i="gymdel">Studio löschen</button>`):''}</div>
+  <h2>Gewichte in ${esc(gymName(GY()))}</h2>
+  <div class="group">${rng('K','Kabelturm')}${rng('M','Maschinen mit Steckgewicht')}${rng('KH','Kurzhanteln (pro Hantel)')}</div>
+  <h2>Scheiben</h2><div class="group ex"><div class="tags" style="margin-top:0">${[25,20,15,10,5,2.5,1.25,0.5].map(v=>`<button class="tag btnt ${GY().plates.includes(v)?'sel':''}" data-a="plt" data-i="${v}">${fmt(v)} kg</button>`).join('')}</div></div>
+  <h2>Stangen und Schlitten</h2><div class="group">${[['LH','Langhantel'],['SZ','SZ-Stange'],['SM','Smith-Maschine']].map(([k,l])=>`<div class="cell"><span>${l}</span><input inputmode="decimal" style="max-width:96px" value="${fmt(GY().gym.bars[k])}" data-f="gb" data-n="${k}"></div>`).join('')}</div>
+  <h2>Eigene Werte pro Übung</h2><div class="group">${ov.length?ov.map(n=>`<div class="cell"><span>${esc(n)}<br><span class="mut sm">${eqSum(GY().eq[n])}</span></span><button class="tag btnt" data-a="eqreset" data-n="${esc(n)}">Standard</button></div>`).join(''):'<div class="cell mut">Noch keine. Im Training Übung gedrückt halten → Gewichte.</div>'}</div>`}
+function vKraft(){const mw=mesoWeek(),l=Object.entries(S.e1).filter(([n])=>!gymSpec(n)).concat(Object.entries(GY().e1||{}).filter(([n])=>GY()!==S||gymSpec(n))).filter((x,q,a)=>a.findIndex(y=>y[0]===x[0])===q).sort((x,y)=>x[0].localeCompare(y[0]));
+  return`${nav('Plan')}<h1>Kraft und Block</h1><div class="sub">Maschinen und Kabel: Werte für ${esc(gymName(GY()))}</div>${banner()}
   <h2>Trainingsblock</h2><div class="group ex">${seg('mso',['an','aus'],S.meso.on?'an':'aus')}<div class="sm" style="margin-top:12px">${mw?'<b>'+esc(mw.label)+'</b> · '+esc(mw.sub):'Aus: klassisch steigern ohne Wochenplan.'}</div>
   <div class="mut sm" style="margin-top:8px">Woche 1: 3 Wdh im Tank · Woche 2: 2 · Woche 3: 1 · Woche 4: 1, letzter Satz bis zum Versagen · Woche 5: Entlastung. Danach startet der nächste Block mit deinen neuen Kraftwerten.</div>
   ${S.meso.on?`${mw&&!mw.test&&!mw.deload?`<button class="btn gray" data-a="deloadnow">Entlastung ab heute</button>`:''}<button class="btn gray" data-a="mesorestart">Block ab Montag neu starten</button>`:''}</div>
@@ -579,7 +595,7 @@ function finish(){
   if(open&&conf!=='finish'){conf='finish';msg='';render();setTimeout(()=>{const el=$('#fin');if(el&&el.scrollIntoView)el.scrollIntoView({behavior:'smooth',block:'center'})},0);return}
   learn(a);const b0=badgeCount();
   const pr=ex.filter(e=>{if(MG[e.n]==='cardio')return false;const b=bestFor(e.n);return b>0&&Math.max(...e.sets.map(e1))>b}).map(e=>e.n);
-  const s={id:Date.now(),date:new Date().toISOString(),day:a.name,min:Math.max(1,Math.round((Date.now()-a.t)/60000)),ex,pr};
+  const s={id:Date.now(),date:new Date().toISOString(),day:a.name,g:gymId(),min:Math.max(1,Math.round((Date.now()-a.t)/60000)),ex,pr};
   S.sessions.unshift(s);pendingSes.add(s.id);
   S.next=(a.i+1)%S.plan.d.length;S.active=null;stopRest();lockScreen(false);
   const st=stats(),nb=badgeCount()-b0;
@@ -639,7 +655,7 @@ function vTrain(){
   const wk=S.sessions.filter(s=>new Date(s.date)>=ws).length,goal=WD.filter((_,q)=>{const d=new Date(ws);d.setDate(d.getDate()+q);return isTrain(d)}).length;
   const hero=S.active?`<div class="hero"><div class="k">Training läuft</div><div class="t">${esc(S.active.name)}</div><div class="mut sm">${S.active.ex.reduce((x,e)=>x+e.sets.filter(s=>s.done).length,0)} Sätze erledigt</div><button class="btn" data-a="go" data-i="workout">Fortsetzen</button></div>`
     :`<div class="hero"><div class="k">${lab}</div><div class="t">${esc(nx.name)}</div>
-    <div class="mut sm">${nx.ex.length} Übungen · ca. ${Math.round(nx.ex.reduce((a,e)=>a+e.s,0)*2.5)} min</div>${mwk?`<div class="mut sm" style="margin-top:4px">${esc(mwk.label)} · ${esc(mwk.sub)}</div>`:''}
+    <div class="mut sm">${nx.ex.length} Übungen · ca. ${Math.round(nx.ex.reduce((a,e)=>a+e.s,0)*2.5)} min</div>${mwk?`<div class="mut sm" style="margin-top:4px">${esc(mwk.label)} · ${esc(mwk.sub)}</div>`:''}${gymId()!=='main'?`<div class="mut sm" style="margin-top:4px">Studio: ${esc(gymName(GY()))}</div>`:''}
     <button class="btn" data-a="start" data-i="${ni}">Training starten</button>${moveUi}</div>`;
   return`<h1>Training</h1><div class="sub">${esc(p.name)}</div>
   ${flash?`<div class="banner">${flash}</div>`:''}
@@ -656,7 +672,7 @@ function vWorkout(){
   const a=S.active;
   const dn=a.ex.reduce((x,e)=>x+e.sets.filter(s=>s.done).length,0),tot=a.ex.reduce((x,e)=>x+e.sets.length,0);
   const mw=mesoWeek(),f=a.form||3;
-  return`${nav('Übersicht')}<h1>${esc(a.name)}</h1><div class="sub"><span class="clock" id="clock">0:00</span> · ${dn}/${tot} Sätze${mw?' · '+esc(mw.label):''}</div>
+  return`${nav('Übersicht')}<h1>${esc(a.name)}</h1><div class="sub"><span class="clock" id="clock">0:00</span> · ${dn}/${tot} Sätze${mw?' · '+esc(mw.label):''}${gymId()!=='main'?' · '+esc(gymName(GY())):''}</div>
   ${banner()}
   ${!a.formOk&&!dn?`<div class="group ex form"><div class="exn">Wie fit bist du heute?</div><input type="range" min="1" max="5" step="1" value="${f}" data-f="form" aria-label="Tagesform"><div class="fl5"><span>Schlecht</span><span>Normal</span><span>Top</span></div><div class="sm" style="margin-top:10px"><b id="formn">${FORM[f]}</b> · <span id="formtx">${formTxt(f)}</span></div><button class="btn gray" data-a="formok">Passt, los geht's</button></div>`:''}
   ${!S.lpUsed?`<div class="mut sm" style="margin:6px 4px 0">Tipp: Übung gedrückt halten und ziehen zum Verschieben, nur halten öffnet das Menü. Satz nach links wischen zum Löschen.</div>`:''}
@@ -718,7 +734,7 @@ function vPlan(){
   <h2>Einstellungen</h2><div class="group">
     <button class="cell" data-a="go" data-i="optionen"><span>Wochentage, Pausen & Steigerung</span><span class="r chev">${S.wd.map(q=>WD[q]).join(' ')}</span></button>
     <button class="cell" data-a="goeig"><span>Eigene Übungen</span><span class="r chev">${S.custom.length||''}</span></button>
-    <button class="cell" data-a="go" data-i="gewichte"><span>Gewichte im Studio</span><span class="r chev">${Object.keys(S.eq).length?Object.keys(S.eq).length+' eigene':''}</span></button>
+    <button class="cell" data-a="go" data-i="gewichte"><span>Studios und Gewichte</span><span class="r chev">${esc(gymName(GY()))}</span></button>
     <button class="cell" data-a="go" data-i="kraft"><span>Kraft und Trainingsblock</span><span class="r chev">${(()=>{const m=mesoWeek();return m?(m.test?'Testwoche':'Woche '+m.w):'aus'})()}</span></button>
     <button class="cell" data-a="go" data-i="geraete"><span>Meine Geräte</span><span class="r chev">${S.no.length?S.no.length+' fehlen':'alle'}</span></button>
     <button class="cell" data-a="go" data-i="speicher"><span>Speicherung & Sicherung</span><span class="r chev" id="syncr">${SYNC[sync][2]}</span></button>
@@ -868,22 +884,25 @@ document.addEventListener('click',async ev=>{
   else if(a==='rir'){const s=S.active.ex[k].sets[j];setRir(s,n==='x'?null:+n);liveSug(k,j);save();
     const ce=S.active.ex[k];if(ce.sets.every(x=>x.done&&x.rir!=null)){const nx=S.active.ex.findIndex((e,q)=>q>k&&e.sets.some(x=>!x.done));if(nx>=0)setTimeout(()=>{const el=$('#ex'+nx);if(el&&el.scrollIntoView)el.scrollIntoView({behavior:'smooth',block:'start'})},60)}}
   else if(a==='exup'||a==='exdown'){const l=S.active.ex,t=a==='exup'?k-1:k+1;if(t>=0&&t<l.length){[l[k],l[t]]=[l[t],l[k]];sw='m'+t;save()}}
-  else if(a==='eqm'){const nm=S.active.ex[+n].n;S.eq[nm]=Object.assign(eqCopy(nm),{m:i});if(i==='p'&&S.eq[nm].bar==null)S.eq[nm].bar=0;if(i==='s'&&S.eq[nm].step==null){S.eq[nm].start=5;S.eq[nm].step=5}save()}
-  else if(a==='sugok'){const e=S.active.ex[k];if(e.sug){e.sets.forEach((x,q)=>{if(q>=e.sug.j&&!x.done)x.kg=fmt(e.sug.kg)});e.sug=null;save()}}
+  else if(a==='eqm'){const nm=S.active.ex[+n].n;GY().eq[nm]=Object.assign(eqCopy(nm),{m:i});if(i==='p'&&GY().eq[nm].bar==null)GY().eq[nm].bar=0;if(i==='s'&&GY().eq[nm].step==null){GY().eq[nm].start=5;GY().eq[nm].step=5}save()}
+  else if(a==='sugok'){const e=S.active.ex[k];if(e.sug){e.sets.forEach((x,q)=>{if(q>=e.sug.j&&!x.done){x.kg=fmt(e.sug.kg);if(e.sug.reps)x.reps=String(e.sug.reps)}});e.sug=null;save()}}
   else if(a==='sugno'){S.active.ex[k].sug=null;save()}
-  else if(a==='kstep'){const e=S.active.ex[k],q=e.sets.findIndex(x=>!x.done);if(q>=0){const nv=stepKg(e.n,num(e.sets[q].kg),+n);e.sets.forEach((x,p)=>{if(p>=q&&!x.done)x.kg=fmt(nv)});e.sug=null;save()}}
+  else if(a==='kstep'){const e=S.active.ex[k],q=e.sets.findIndex(x=>!x.done);if(q>=0){const nv=stepKg(e.n,num(e.sets[q].kg),+n),E1=EM(e.n)[e.n];e.sets.forEach((x,p)=>{if(p>=q&&!x.done){x.kg=fmt(nv);if(E1&&nv>0&&x.t!=='T'){const rp=repsAt(E1.v,nv,x.tr!=null?x.tr:(e.rirT!=null?e.rirT:2));x.reps=String(Math.max(1,Math.min(e.r[1]+5,rp)))}}});e.sug=null;save()}}
   else if(a==='delset'){const e=S.active.ex[k];if(e.sets.length>1){e.sets.splice(j,1);e.sug=null}else msg='Mindestens ein Satz bleibt. Zum Entfernen der Übung: gedrückt halten → Entfernen.';swiped=null;save()}
   else if(a==='noswp'){swiped=null}
   else if(a==='formok'){S.active.formOk=true;save()}
   else if(a==='retest'){const e=S.active.ex[k],q=e.sets.findIndex(x=>!x.done);if(q>=0){e.sets[q].t='T';e.sets[q].reps='';e.test=true;e.tested=false;e.tk='Krafttest';e.tip='Krafttest: bis zum Muskelversagen. Die App rechnet danach die übrigen Sätze neu aus.';sw=null;save()}}
-  else if(a==='retestx'){delete S.e1[n];msg=n+': Beim nächsten Training ist der erste Satz wieder ein Krafttest.';save()}
-  else if(a==='eqreset'){delete S.eq[n];save()}
+  else if(a==='retestx'){delete EM(n)[n];msg=n+': Beim nächsten Training ist der erste Satz wieder ein Krafttest.';save()}
+  else if(a==='eqreset'){delete GY().eq[n];save()}
+  else if(a==='gymset'){if(i!==gymId()){S.gymId=i;if(S.active&&!S.active.ex.some(e=>e.sets.some(x=>x.done)))reform();else if(S.active)S.active.ex=S.active.ex.map(e=>e.cardio||e.sets.some(x=>x.done)?e:buildSets({n:e.n,s:e.s0||e.s,r:e.r},S.active.form||3));msg='Aktives Studio: '+gymName(GY())+(S.active?'. Dein laufendes Training wurde angepasst.':'.');save()}}
+  else if(a==='gymadd'){const id='g'+Date.now();S.gyms.push({id,name:'Studio '+(S.gyms.length+2),gym:clone(S.gym),plates:S.plates.slice(),eq:{},e1:{}});S.gymId=id;if(S.active&&!S.active.ex.some(e=>e.sets.some(x=>x.done)))reform();msg='Neues Studio angelegt und aktiv. Gib ihm einen Namen und trag die Gewichte ein.';save()}
+  else if(a==='gymdel'){const id=gymId();if(id!=='main'){S.gyms=S.gyms.filter(g=>g.id!==id);S.gymId='main';msg='Studio gelöscht. Aktiv ist wieder '+gymName(S)+'.';save()}}
   else if(a==='mso'){S.meso.on=i==='an';save()}
   else if(a==='deloadnow'){const d=weekStart();d.setDate(d.getDate()-28);S.meso.start=dkey(d);S.fat=0;msg='Diese Woche ist jetzt Entlastung. Ab Montag startet der nächste Block.';save()}
   else if(a==='mesorestart'){S.meso.start=dkey(nextMon());S.fat=0;msg='Neuer Block startet am Montag. Bis dahin wie gewohnt weiter.';save()}
   else if(a==='rirt'){S.rirOn=i==='an';save()}
   else if(a==='thm'){S.theme=i;save()}
-  else if(a==='plt'){const v=num(i);S.plates=S.plates.includes(v)?S.plates.filter(x=>x!==v):[...S.plates,v];save()}
+  else if(a==='plt'){const v=num(i);GY().plates=GY().plates.includes(v)?GY().plates.filter(x=>x!==v):[...GY().plates,v];save()}
   else if(a==='wck'){const s=S.active.ex[k].warm[j];s.done=!s.done;if(s.done)startRest(60);else stopRest();save()}
   else if(a==='rest'){if(i==='x')stopRest();else{restEnd=Math.max(Date.now()+1000,restEnd+(+i)*1000);keepRest();tickRest()}return}
   else if(a==='addset'){const e=S.active.ex[k],l=e.sets[e.sets.length-1];e.sets.push({kg:l?l.kg:'',reps:l?l.reps:'',pv:'–',done:false});save()}
@@ -916,12 +935,13 @@ document.addEventListener('input',ev=>{
   if(f==='kg'||f==='reps'){const e=S.active.ex[i],st=e.sets[j];st[f]=t.value;
     const fl=f+'M';if(j>0)st[fl]=true;else e.sets.forEach((x,q)=>{if(q===0||x.done||x[fl])return;x[f]=t.value;const el=document.querySelector('input[data-f="'+f+'"][data-i="'+i+'"][data-j="'+q+'"]');if(el)el.value=t.value});
     save();const c=$('#calc'+i);if(c)c.textContent=calcLine(e)}
-  else if(f==='eqbar'||f==='eqstart'||f==='eqstep'||f==='eqmax'){const nm=S.active.ex[i].n,v=num(t.value);if(f==='eqstep'&&v<=0)return;S.eq[nm]=eqCopy(nm);S.eq[nm][f.slice(2)]=v;save();const c=$('#calc'+i);if(c)c.textContent=calcLine(S.active.ex[i])}
+  else if(f==='eqbar'||f==='eqstart'||f==='eqstep'||f==='eqmax'){const nm=S.active.ex[i].n,v=num(t.value);if(f==='eqstep'&&v<=0)return;GY().eq[nm]=eqCopy(nm);GY().eq[nm][f.slice(2)]=v;save();const c=$('#calc'+i);if(c)c.textContent=calcLine(S.active.ex[i])}
   else if(f==='form'){const v=+t.value;const a1=$('#formn'),a2=$('#formtx');if(a1)a1.textContent=FORM[v];if(a2)a2.textContent=formTxt(v)}
-  else if(f==='gy'){const v=num(t.value),k=t.dataset.n,x=t.dataset.i;if(x==='s'&&v<=0)return;S.gym[k][x]=v;save()}
-  else if(f==='gb'){S.gym.bars[t.dataset.n]=num(t.value);save()}
-  else if(f==='gz'){S.gym[t.dataset.n].z=parseZ(t.value);save()}
-  else if(f==='eqz'){const nm=S.active.ex[i].n;S.eq[nm]=eqCopy(nm);S.eq[nm].z=parseZ(t.value);save();const c=$('#calc'+i);if(c)c.textContent=calcLine(S.active.ex[i])}
+  else if(f==='gy'){const v=num(t.value),k=t.dataset.n,x=t.dataset.i;if(x==='s'&&v<=0)return;GY().gym[k][x]=v;save()}
+  else if(f==='gb'){GY().gym.bars[t.dataset.n]=num(t.value);save()}
+  else if(f==='gyname'){const g=GY(),v=t.value.trim().slice(0,40);if(g===S)S.gymName=v;else g.name=v;save()}
+  else if(f==='gz'){GY().gym[t.dataset.n].z=parseZ(t.value);save()}
+  else if(f==='eqz'){const nm=S.active.ex[i].n;GY().eq[nm]=eqCopy(nm);GY().eq[nm].z=parseZ(t.value);save();const c=$('#calc'+i);if(c)c.textContent=calcLine(S.active.ex[i])}
   else if(f==='wkg'||f==='wreps'){S.active.ex[i].warm[j][f==='wkg'?'kg':'reps']=t.value;save()}
   else if(f==='note'){S.notes[t.dataset.n]=t.value;save()}
   else if(f==='ps'){S.plan.d[i].ex[j].s=Math.max(1,num(t.value)|0);save()}
@@ -933,7 +953,7 @@ document.addEventListener('change',ev=>{const t=ev.target;if(t.dataset.f==='hx')
   if(t.dataset.f==='form'&&S.active){S.active.form=+t.value;if(!S.active.ex.some(e=>e.sets.some(x=>x.done)))reform();save();render()}
   if(t.dataset.f==='file'&&t.files&&t.files[0]){const r=new FileReader();r.onload=()=>{try{const x=JSON.parse(r.result);if(!x.v||!Array.isArray(x.sessions))throw 0;S=Object.assign(blank(),x);migrate();S.sessions.forEach(z=>pendingSes.add(z.id));save();msg='Sicherung wiederhergestellt: '+S.sessions.length+' Einheiten.';route=valid(route)}catch(e){msg='Die Datei ist keine gültige Sicherung.'}render()};r.readAsText(t.files[0])}});
 try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
-const APP_VERSION=10;
+const APP_VERSION=11;
 if('serviceWorker' in navigator&&location.protocol==='https:'){let rl=false;const had=!!navigator.serviceWorker.controller;
   navigator.serviceWorker.addEventListener('controllerchange',()=>{if(had&&!rl&&!S.active){rl=true;location.reload()}});
   window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(r=>{r.update().catch(()=>{});document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')r.update().catch(()=>{})})}).catch(()=>{})})}
