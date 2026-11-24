@@ -254,6 +254,28 @@ const PRI={M:0,K:1,SM:2,KH:3,LH:3,SZ:3,KB:4,KG:4,B:5,S:4,C:6};
 function alts(n){const g=MG[n];if(!g)return[];const l=[g,...REL[g]].flatMap(x=>MACH[x].map(y=>[y,x===g?0:1])).filter(([x])=>x!==n&&has(x));l.sort((p,q)=>p[1]-q[1]||(PRI[MT[p[0]]]??9)-(PRI[MT[q[0]]]??9));return l.map(x=>x[0])}
 function fitDay(day){const used=[],out=[];for(const e of day.ex){let n=e.n;if(!has(n)){const a=alts(n).filter(x=>!used.includes(x));n=a[0]||n}used.push(n);out.push({...e,n})}return{...day,ex:out}}
 function fitPlan(p){let c=0;const d=p.d.map(day=>{const f=fitDay(day);f.ex.forEach((e,i)=>{if(e.n!==day.ex[i].n)c++});return f});return{plan:{...p,d},c}}
+const WH_ID='f11e5061-ee84-4167-9d02-284adf1bd8db',WH_RED='https://tsg7xft7bs-cell.github.io/Training-/',WH_SCOPE='offline read:recovery read:sleep read:cycles read:workout read:body_measurement';
+let whBusy=false;
+async function whCall(body){const t=await token();const r=await fetch(SB_URL+'/functions/v1/whoop',{method:'POST',headers:{apikey:SB_KEY,Authorization:'Bearer '+t,'Content-Type':'application/json'},body:JSON.stringify(body)});const j=await r.json().catch(()=>({}));if(!r.ok)throw Object.assign(new Error(j.message||j.error||('Fehler '+r.status)),{status:r.status,code:j.error});return j}
+function whStart(){if(!auth){msg='Melde dich zuerst unter Speicherung & Sicherung an. WHOOP wird mit deinem Konto verknüpft.';render();return}
+  const st=Array.from(crypto.getRandomValues(new Uint8Array(8)),b=>(b%36).toString(36)).join('');try{localStorage.setItem('trn_whst',st)}catch(e){}
+  location.href='https://api.prod.whoop.com/oauth/oauth2/auth?'+new URLSearchParams({response_type:'code',client_id:WH_ID,redirect_uri:WH_RED,scope:WH_SCOPE,state:st}).toString()}
+async function whReturn(){let q;try{q=new URLSearchParams(location.search)}catch(e){return}if(!q.get('code')&&!q.get('error'))return;
+  const code=q.get('code'),st=q.get('state'),err=q.get('error');let mine=null;try{mine=localStorage.getItem('trn_whst');localStorage.removeItem('trn_whst')}catch(e){}
+  try{history.replaceState(null,'',location.pathname+location.hash)}catch(e){}
+  if(err){msg='WHOOP-Verbindung abgebrochen.';render();return}
+  if(!mine||mine!==st){msg='WHOOP-Verbindung konnte nicht geprüft werden. Bitte noch einmal verbinden.';render();return}
+  try{await whCall({action:'connect',code,redirect_uri:WH_RED});S.whOn=true;save();msg='WHOOP verbunden.';await whSync(true)}catch(e){msg=e.code==='no_secret'?'WHOOP: Das Client Secret fehlt noch in Supabase.':'WHOOP-Verbindung fehlgeschlagen: '+e.message}
+  render()}
+async function whSync(force){if(!auth||!S.whOn||whBusy)return;if(!force&&S.whoop&&Date.now()-new Date(S.whoop.at).getTime()<20*60000)return;whBusy=true;
+  try{const d=await whCall({action:'data'});if(!d.connected){if(d.expired){S.whOn=false;msg='WHOOP-Anmeldung abgelaufen. Bitte neu verbinden.'}save();return}
+    S.whoop={at:d.at,recovery:(d.recovery||[]).slice(0,7),sleep:(d.sleep||[]).slice(0,3),cycles:(d.cycles||[]).slice(0,3),maxHr:d.maxHr};
+    for(const se of S.sessions.slice(0,15)){if(se.wh)continue;const end=new Date(se.date).getTime();const w=(d.workouts||[]).find(x=>Math.abs(new Date(x.end).getTime()-end)<90*60000);if(w){se.wh={strain:Math.round(w.strain*10)/10,avg:w.avgHr,max:w.maxHr};pendingSes.add(se.id)}}
+    save();if(!S.active||route!=='workout'||!S.active.ex.some(e=>e.sets.some(x=>x.done)))render()}
+  catch(e){}finally{whBusy=false}}
+function whToday(){const r=S.whoop&&S.whoop.recovery&&S.whoop.recovery[0];if(!r||r.calibrating)return null;if(Date.now()-new Date(r.at).getTime()>20*3600000)return null;return r}
+function whForm(){const r=whToday();if(!r)return null;const v=r.score;return v>=85?5:v>=67?4:v>=34?3:v>=20?2:1}
+function whRed(){const l=(S.whoop&&S.whoop.recovery)||[];return l.length>=4&&l.slice(0,4).filter(x=>x.score<34).length>=3}
 function GY(){const id=S.gymId;if(!id||id==='main'||!S.gyms)return S;return S.gyms.find(x=>x.id===id)||S}
 function gymSpec(n){return['M','K','S','SM'].includes(MT[n])||PLATE_RX.test(n)}
 function EM(n){if(!gymSpec(n))return S.e1;const g=GY();if(!g.e1)g.e1={};return g.e1}
@@ -548,10 +570,11 @@ function vGew(){const ov=Object.keys(GY().eq),cur=gymId(),all=[S,...S.gyms];
   <h2>Stangen und Schlitten</h2><div class="group">${[['LH','Langhantel'],['SZ','SZ-Stange'],['SM','Smith-Maschine']].map(([k,l])=>`<div class="cell"><span>${l}</span><input inputmode="decimal" style="max-width:96px" value="${fmt(GY().gym.bars[k])}" data-f="gb" data-n="${k}"></div>`).join('')}</div>
   <h2>Eigene Werte pro Übung</h2><div class="group">${ov.length?ov.map(n=>`<div class="cell"><span>${esc(n)}<br><span class="mut sm">${eqSum(GY().eq[n])}</span></span><button class="tag btnt" data-a="eqreset" data-n="${esc(n)}">Standard</button></div>`).join(''):'<div class="cell mut">Noch keine. Im Training Übung gedrückt halten → Gewichte.</div>'}</div>`}
 function vKraft(){const mw=mesoWeek(),l=Object.entries(S.e1).filter(([n])=>!gymSpec(n)).concat(Object.entries(GY().e1||{}).filter(([n])=>GY()!==S||gymSpec(n))).filter((x,q,a)=>a.findIndex(y=>y[0]===x[0])===q).sort((x,y)=>x[0].localeCompare(y[0]));
-  return`${nav('Plan')}<h1>Kraft und Block</h1><div class="sub">Maschinen und Kabel: Werte für ${esc(gymName(GY()))}</div>${banner()}
+  return`${nav('Plan')}<h1>Kraft, Block und WHOOP</h1><div class="sub">Maschinen und Kabel: Werte für ${esc(gymName(GY()))}</div>${banner()}
   <h2>Trainingsblock</h2><div class="group ex">${seg('mso',['an','aus'],S.meso.on?'an':'aus')}<div class="sm" style="margin-top:12px">${mw?'<b>'+esc(mw.label)+'</b> · '+esc(mw.sub):'Aus: klassisch steigern ohne Wochenplan.'}</div>
   <div class="mut sm" style="margin-top:8px">Woche 1: 3 Wdh im Tank · Woche 2: 2 · Woche 3: 1 · Woche 4: 1, letzter Satz bis zum Versagen · Woche 5: Entlastung. Danach startet der nächste Block mit deinen neuen Kraftwerten.</div>
   ${S.meso.on?`${mw&&!mw.test&&!mw.deload?`<button class="btn gray" data-a="deloadnow">Entlastung ab heute</button>`:''}<button class="btn gray" data-a="mesorestart">Block ab Montag neu starten</button>`:''}</div>
+  <h2>WHOOP</h2><div class="group ex">${S.whOn?`<div class="sm">Verbunden${S.whoop?' · zuletzt '+new Date(S.whoop.at).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'}):''}</div>${(()=>{const r=whToday();return r?`<div class="mut sm" style="margin-top:6px">Heute: Erholung ${Math.round(r.score)} %${r.hrv?' · HRV '+Math.round(r.hrv)+' ms':''}</div>`:'<div class="mut sm" style="margin-top:6px">Noch keine Erholung für heute.</div>'})()}<div class="row2"><button class="btn gray" data-a="whsync">Jetzt laden</button><button class="btn red" data-a="whoff">Trennen</button></div>`:`<div class="mut sm">Mit WHOOP stellt die App den Tagesform-Regler nach deiner Erholung vor, warnt bei mehreren roten Tagen und zeigt die Belastung (Strain) pro Training im Verlauf.</div><button class="btn" data-a="whon">Mit WHOOP verbinden</button>`}</div>
   <h2>Geschätzte Maximalkraft</h2><div class="group">${l.length?l.map(([n,x])=>`<div class="cell"><span>${esc(n)}<br><span class="mut sm">ca. ${fmt(Math.round(x.v*2)/2)} kg · ${dstr(x.d+'T12:00')}</span></span><button class="tag btnt" data-a="retestx" data-n="${esc(n)}">Neu testen</button></div>`).join(''):'<div class="cell mut">Noch keine Werte. Beim nächsten Training ist der erste Satz jeder Übung ein Krafttest.</div>'}</div>`}
 let lp=null,sp=null,swiped=null;
 const pt=ev=>(ev.touches&&ev.touches[0])||(ev.changedTouches&&ev.changedTouches[0])||ev;
@@ -578,7 +601,7 @@ function addWarm(){if(!S.warm)return;const seen=new Set();for(const e of S.activ
   e.warm=[[.5,10],[.7,5]].concat(w>=60?[[.85,2]]:[]).map(([f,r])=>({kg:fmt(rnd(w*f)),reps:String(r),done:false}))}}
 async function lockScreen(on){try{if(on&&navigator.wakeLock&&!wake&&document.visibilityState==='visible'){wake=await navigator.wakeLock.request('screen');wake.addEventListener('release',()=>{wake=null})}if(!on&&wake){const w=wake;wake=null;await w.release()}}catch(e){}}
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&S.active)lockScreen(true)});
-function startDay(i){if(S.active){if(S.active.i===i){go('workout');return}if(conf!=='replace'+i){conf='replace'+i;render();return}}const day=fitDay(S.plan.d[i]);S.active={i,name:day.name,t:Date.now(),form:3,ex:day.ex.map(e=>buildSets(e,3))};addWarm();flash='';save();lockScreen(true);go('workout')}
+function startDay(i){if(S.active){if(S.active.i===i){go('workout');return}if(conf!=='replace'+i){conf='replace'+i;render();return}}const day=fitDay(S.plan.d[i]);const wf=whForm()||3;S.active={i,name:day.name,t:Date.now(),form:wf,fsrc:whForm()?'w':null,ex:day.ex.map(e=>buildSets(e,wf))};addWarm();flash='';save();lockScreen(true);go('workout')}
 function bkFile(){return new File([JSON.stringify(S)],'training-sicherung-'+dkey(new Date())+'.json',{type:'application/json'})}
 function autoBackup(){if(auth)return;
   const due=S.autoBk==='t'||(S.autoBk==='w'&&(!S.lastBk||Date.now()-S.lastBk>6.5*864e5));if(!due)return;
@@ -659,7 +682,7 @@ function vTrain(){
     <button class="btn" data-a="start" data-i="${ni}">Training starten</button>${moveUi}</div>`;
   return`<h1>Training</h1><div class="sub">${esc(p.name)}</div>
   ${flash?`<div class="banner">${flash}</div>`:''}
-  ${S.fat>=2&&mwk&&!mwk.test&&!mwk.deload?`<div class="banner warn">Deine Leistung ist zweimal in Folge gefallen. Eine Entlastungswoche bringt dich wahrscheinlich schneller weiter.<button class="btn" data-a="deloadnow">Entlastung ab heute</button></div>`:''}
+  ${(S.fat>=2||whRed())&&mwk&&!mwk.test&&!mwk.deload?`<div class="banner warn">${S.fat>=2?'Deine Leistung ist zweimal in Folge gefallen.':'WHOOP zeigt an 3 der letzten 4 Tage rote Erholung.'} Eine Entlastungswoche bringt dich wahrscheinlich schneller weiter.<button class="btn" data-a="deloadnow">Entlastung ab heute</button></div>`:''}
   <button class="streak" data-a="go" data-i="erfolge"><span class="fl">${FLAME}</span><span style="flex:1"><span class="n">${st.cur}</span> <span class="mut">${st.cur===1?'Tag':'Tage'} Streak</span><br><span class="mut sm">Rekord ${st.best} · Erfolge ansehen</span></span><span class="chev"></span></button>
   ${hero}
   <h2>Diese Woche · ${wk} von ${goal}</h2>
@@ -674,7 +697,7 @@ function vWorkout(){
   const mw=mesoWeek(),f=a.form||3;
   return`${nav('Übersicht')}<h1>${esc(a.name)}</h1><div class="sub"><span class="clock" id="clock">0:00</span> · ${dn}/${tot} Sätze${mw?' · '+esc(mw.label):''}${gymId()!=='main'?' · '+esc(gymName(GY())):''}</div>
   ${banner()}
-  ${!a.formOk&&!dn?`<div class="group ex form"><div class="exn">Wie fit bist du heute?</div><input type="range" min="1" max="5" step="1" value="${f}" data-f="form" aria-label="Tagesform"><div class="fl5"><span>Schlecht</span><span>Normal</span><span>Top</span></div><div class="sm" style="margin-top:10px"><b id="formn">${FORM[f]}</b> · <span id="formtx">${formTxt(f)}</span></div><button class="btn gray" data-a="formok">Passt, los geht's</button></div>`:''}
+  ${!a.formOk&&!dn?`<div class="group ex form"><div class="exn">Wie fit bist du heute?</div><input type="range" min="1" max="5" step="1" value="${f}" data-f="form" aria-label="Tagesform"><div class="fl5"><span>Schlecht</span><span>Normal</span><span>Top</span></div>${(()=>{const r=whToday();return r?`<div class="mut sm" style="margin-top:8px">WHOOP: Erholung ${Math.round(r.score)} %${r.hrv?' · HRV '+Math.round(r.hrv)+' ms':''}${r.rhr?' · Ruhepuls '+Math.round(r.rhr):''}${a.fsrc==='w'?'. Regler danach vorgestellt.':''}</div>`:''})()}<div class="sm" style="margin-top:10px"><b id="formn">${FORM[f]}</b> · <span id="formtx">${formTxt(f)}</span></div><button class="btn gray" data-a="formok">Passt, los geht's</button></div>`:''}
   ${!S.lpUsed?`<div class="mut sm" style="margin:6px 4px 0">Tipp: Übung gedrückt halten und ziehen zum Verschieben, nur halten öffnet das Menü. Satz nach links wischen zum Löschen.</div>`:''}
   ${a.ex.map((e,i)=>{const pc=!e.tk?'':e.tk[0]==='+'?'up':e.tk[0]==='−'||e.tk==='Deload'||e.tk==='Entlastung'?'dn':'n',open=e.sets.some(x=>!x.done);return`<div class="group ex" id="ex${i}">
     <div class="exh"><div style="min-width:0"><div class="exn">${esc(e.n)}</div>
@@ -723,8 +746,8 @@ function vHist(){
   <div class="mut sm" style="margin:8px 16px">Richtwert für Muskelaufbau: etwa 10–20 Sätze pro Muskel und Woche. Orange = eher wenig.</div>
   ${S.sessions.length?`<h2>Fortschritt</h2>${chart}<h2>Bestenliste</h2><div class="group">${bl}</div><h2>Einheiten</h2>`:'<div class="group" style="margin-top:20px"><div class="cell mut">Noch keine Einheiten. Nach deinem ersten Training erscheint hier dein Verlauf.</div></div>'}
   ${S.sessions.map(s=>`<div class="group ex"><div class="exh"><div class="exn">${esc(s.day)}</div><span class="mut sm">${dstr(s.date)}</span></div>
-    <div class="mut sm">${s.min||0} min · ${fmt(vol(s))} kg</div>
-    ${s.ex.map(e=>`<div class="sm" style="margin-top:8px"><b style="font-weight:600">${esc(e.n)}</b>${(s.pr||[]).includes(e.n)?' <span class="pr">Bestwert</span>':''}<br><span class="mut">${e.sets.map(x=>fmt(x.kg)+' kg × '+x.reps+(x.t?' '+(x.t==='D'?'Drop':x.t==='RP'?'RP':'F'):'')+(x.rir!=null?' @'+x.rir:'')).join(' · ')}</span></div>`).join('')}
+    <div class="mut sm">${s.min||0} min · ${fmt(vol(s))} kg${s.wh?' · Strain '+fmt(s.wh.strain)+(s.wh.avg?' · Ø '+s.wh.avg+' bpm':''):''}${s.g&&s.g!=='main'?' · '+esc(gymName((S.gyms||[]).find(g=>g.id===s.g)||{name:'anderes Studio'})):''}</div>
+    ${s.ex.map(e=>`<div class="sm" style="margin-top:8px"><b style="font-weight:600">${esc(e.n)}</b>${(s.pr||[]).includes(e.n)?' <span class="pr">Bestwert</span>':''}<br><span class="mut">${e.sets.map(x=>fmt(x.kg)+' kg × '+x.reps+(x.t?' '+(x.t==='D'?'Drop':x.t==='RP'?'RP':x.t==='T'?'Test':'F'):'')+(x.rir!=null?' @'+x.rir:'')).join(' · ')}</span></div>`).join('')}
     <div class="acts">${conf==='del'+s.id?`<button class="lnk red" data-a="delses" data-i="${s.id}">Endgültig löschen</button><button class="lnk" data-a="noconf">Abbrechen</button>`:`<button class="lnk red" data-a="conf" data-i="del${s.id}">Löschen</button>`}</div></div>`).join('')}`;
 }
 function vPlan(){
@@ -735,7 +758,7 @@ function vPlan(){
     <button class="cell" data-a="go" data-i="optionen"><span>Wochentage, Pausen & Steigerung</span><span class="r chev">${S.wd.map(q=>WD[q]).join(' ')}</span></button>
     <button class="cell" data-a="goeig"><span>Eigene Übungen</span><span class="r chev">${S.custom.length||''}</span></button>
     <button class="cell" data-a="go" data-i="gewichte"><span>Studios und Gewichte</span><span class="r chev">${esc(gymName(GY()))}</span></button>
-    <button class="cell" data-a="go" data-i="kraft"><span>Kraft und Trainingsblock</span><span class="r chev">${(()=>{const m=mesoWeek();return m?(m.test?'Testwoche':'Woche '+m.w):'aus'})()}</span></button>
+    <button class="cell" data-a="go" data-i="kraft"><span>Kraft, Block und WHOOP</span><span class="r chev">${(()=>{const m=mesoWeek();return m?(m.test?'Testwoche':'Woche '+m.w):'aus'})()}</span></button>
     <button class="cell" data-a="go" data-i="geraete"><span>Meine Geräte</span><span class="r chev">${S.no.length?S.no.length+' fehlen':'alle'}</span></button>
     <button class="cell" data-a="go" data-i="speicher"><span>Speicherung & Sicherung</span><span class="r chev" id="syncr">${SYNC[sync][2]}</span></button>
     <button class="cell" data-a="go" data-i="homescreen"><span>Auf den Home-Bildschirm</span><span class="r chev"></span></button></div>
@@ -897,6 +920,9 @@ document.addEventListener('click',async ev=>{
   else if(a==='gymset'){if(i!==gymId()){S.gymId=i;if(S.active&&!S.active.ex.some(e=>e.sets.some(x=>x.done)))reform();else if(S.active)S.active.ex=S.active.ex.map(e=>e.cardio||e.sets.some(x=>x.done)?e:buildSets({n:e.n,s:e.s0||e.s,r:e.r},S.active.form||3));msg='Aktives Studio: '+gymName(GY())+(S.active?'. Dein laufendes Training wurde angepasst.':'.');save()}}
   else if(a==='gymadd'){const id='g'+Date.now();S.gyms.push({id,name:'Studio '+(S.gyms.length+2),gym:clone(S.gym),plates:S.plates.slice(),eq:{},e1:{}});S.gymId=id;if(S.active&&!S.active.ex.some(e=>e.sets.some(x=>x.done)))reform();msg='Neues Studio angelegt und aktiv. Gib ihm einen Namen und trag die Gewichte ein.';save()}
   else if(a==='gymdel'){const id=gymId();if(id!=='main'){S.gyms=S.gyms.filter(g=>g.id!==id);S.gymId='main';msg='Studio gelöscht. Aktiv ist wieder '+gymName(S)+'.';save()}}
+  else if(a==='whon'){whStart();return}
+  else if(a==='whsync'){msg='Lade WHOOP-Daten …';render();await whSync(true);if(msg==='Lade WHOOP-Daten …')msg=S.whoop?'WHOOP-Daten aktualisiert.':'Keine WHOOP-Daten erhalten.'}
+  else if(a==='whoff'){try{await whCall({action:'disconnect'})}catch(e){}S.whOn=false;S.whoop=null;msg='WHOOP getrennt. Du kannst den Zugriff zusätzlich in der WHOOP-App entfernen.';save()}
   else if(a==='mso'){S.meso.on=i==='an';save()}
   else if(a==='deloadnow'){const d=weekStart();d.setDate(d.getDate()-28);S.meso.start=dkey(d);S.fat=0;msg='Diese Woche ist jetzt Entlastung. Ab Montag startet der nächste Block.';save()}
   else if(a==='mesorestart'){S.meso.start=dkey(nextMon());S.fat=0;msg='Neuer Block startet am Montag. Bis dahin wie gewohnt weiter.';save()}
@@ -950,15 +976,15 @@ document.addEventListener('input',ev=>{
 });
 document.addEventListener('focusin',ev=>{const t=ev.target;if(t.tagName==='INPUT'&&/decimal|numeric/.test(t.inputMode||t.getAttribute('inputmode')||''))setTimeout(()=>{try{t.select()}catch(e){}},0)});
 document.addEventListener('change',ev=>{const t=ev.target;if(t.dataset.f==='hx'){hx=t.value;render()}
-  if(t.dataset.f==='form'&&S.active){S.active.form=+t.value;if(!S.active.ex.some(e=>e.sets.some(x=>x.done)))reform();save();render()}
+  if(t.dataset.f==='form'&&S.active){S.active.form=+t.value;S.active.fsrc=null;if(!S.active.ex.some(e=>e.sets.some(x=>x.done)))reform();save();render()}
   if(t.dataset.f==='file'&&t.files&&t.files[0]){const r=new FileReader();r.onload=()=>{try{const x=JSON.parse(r.result);if(!x.v||!Array.isArray(x.sessions))throw 0;S=Object.assign(blank(),x);migrate();S.sessions.forEach(z=>pendingSes.add(z.id));save();msg='Sicherung wiederhergestellt: '+S.sessions.length+' Einheiten.';route=valid(route)}catch(e){msg='Die Datei ist keine gültige Sicherung.'}render()};r.readAsText(t.files[0])}});
 try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
-const APP_VERSION=11;
+const APP_VERSION=12;
 if('serviceWorker' in navigator&&location.protocol==='https:'){let rl=false;const had=!!navigator.serviceWorker.controller;
   navigator.serviceWorker.addEventListener('controllerchange',()=>{if(had&&!rl&&!S.active){rl=true;location.reload()}});
   window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(r=>{r.update().catch(()=>{});document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')r.update().catch(()=>{})})}).catch(()=>{})})}
 route=valid((()=>{try{return location.hash.slice(1)}catch(e){return''}})()||(S.active?'workout':'train'));
-render();initDb();
+render();initDb();setTimeout(()=>{whReturn().then(()=>whSync())},50);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')whSync()});
 try{const re=+localStorage.getItem('trn_rest');if(S.active&&re>Date.now()){restEnd=re;restI=setInterval(tickRest,250);tickRest()}else localStorage.removeItem('trn_rest')}catch(e){}
 </script>
 </body>
