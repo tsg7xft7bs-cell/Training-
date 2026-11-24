@@ -7,14 +7,14 @@ const c=s=>{const el=d.querySelector(s);if(!el)throw new Error('missing '+s);el.
 const txt=()=>d.querySelector('#app').textContent;
 // Onboarding
 ok(E('route')==='start'&&!d.querySelector('#tabs button'),'Start ohne Plan, keine Tabs');
-c('[data-a=days][data-i="6"]');c('[data-a=pick][data-i=arn6]');c('[data-a=startplan]');
+c('[data-a=days][data-i="6"]');c('[data-a=pick][data-i=arn6]');c('[data-a=startplan]');w.eval('S.meso.on=false');
 ok(E('route')==='train'&&d.querySelectorAll('#tabs button').length===3,'Plan gestartet, 3 Tabs');
 ok(JSON.stringify(E('S.wd'))==='[0,1,2,3,4,5]','Standard Mo–Sa, Sonntag Ruhetag');
 // Tabs
 for(const t of ['hist','plan','train']){c(`[data-a=tab][data-i=${t}]`);ok(E('route')===t&&d.querySelector('#tabs .on').dataset.i===t,'Tab '+t+' aktiv');}
 // Unterseiten & Zurück
 c('[data-a=tab][data-i=plan]');
-for(const r of ['day-0','optionen','geraete','speicher','homescreen','neuerplan']){c(`[data-a=go][data-i="${r}"]`);ok(E('route')===r&&d.querySelector('[data-a=back]'),'Seite '+r+' mit Zurück');c('[data-a=back]');ok(E('route')==='plan','Zurück von '+r+' → plan');}
+for(const r of ['day-0','optionen','geraete','gewichte','kraft','speicher','homescreen','neuerplan']){c(`[data-a=go][data-i="${r}"]`);ok(E('route')===r&&d.querySelector('[data-a=back]'),'Seite '+r+' mit Zurück');c('[data-a=back]');ok(E('route')==='plan','Zurück von '+r+' → plan');}
 // Browser-Zurück (hash)
 c('[data-a=go][data-i="day-1"]');await sleep(20);ok(w.location.hash==='#day-1','Hash gesetzt');
 w.location.hash='plan';await sleep(30);ok(E('route')==='plan','Browser-Zurück/Hashwechsel → plan');
@@ -59,7 +59,7 @@ c('[data-a=unmove]');ok(E('S.mv.length')===0&&E('isTrain(noon(new Date()))')===t
 // Erfolge-Seite
 c('[data-a=go][data-i=erfolge]');ok(d.querySelectorAll('.badge').length===12,'Erfolge: 12 Abzeichen');c('[data-a=back]');ok(E('route')==='train','Zurück aus Erfolge');
 // Crawler: jeder Button auf jeder Seite
-const routes=['train','hist','plan','day-0','optionen','geraete','speicher','homescreen','erfolge','neuerplan'];
+const routes=['train','hist','plan','day-0','optionen','geraete','gewichte','kraft','speicher','homescreen','erfolge','neuerplan'];
 let clicks=0;E('startDay(0)');routes.unshift('workout');
 for(const r of routes){
   E(`go(${JSON.stringify(r)})`);const n=d.querySelectorAll('[data-a]').length;

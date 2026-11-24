@@ -8,7 +8,7 @@ ok(html.includes('html[data-theme=dark]')&&html.includes('--bg:#000;'),'Helles +
 ok(/backdrop-filter:blur\(28px\)/.test(html),'Liquid-Glass-Flächen');
 ok(/\.btn\{[^}]*border-radius:9999px/.test(html),'Buttons als Pill');
 ok(!/font-size:1[0-5]px[^}]*\}[^{]*$/.test('')&&!/input[^{]*\{[^}]*font-size:1[0-5]px/.test(html.split('</style>')[0].replace(/\.set\.warm \.no\{[^}]*\}/,'')),'Eingabefelder ≥16px (kein iOS-Zoom)');
-c('[data-a=days][data-i="6"]');c('[data-a=pick][data-i=arn6]');c('[data-a=startplan]');
+c('[data-a=days][data-i="6"]');c('[data-a=pick][data-i=arn6]');c('[data-a=startplan]');w.eval('S.meso.on=false');
 ok(d.documentElement.dataset.theme==='dark','Standard: Dunkel');
 E('go("optionen")');c('[data-a=thm][data-i=light]');ok(E('S.theme')==='light'&&d.documentElement.dataset.theme==='light','Umschalten auf Hell');
 c('[data-a=thm][data-i=auto]');ok(d.documentElement.dataset.theme==='auto','Automatisch');c('[data-a=thm][data-i=dark]');E('go("train")');
